@@ -17,17 +17,10 @@
   };
 
   outputs = {
-    self,
     nixpkgs,
     nix4nvchad,
     ...
   }: let
-    systems = [
-      "x86_64-linux"
-      "aarch64-linux"
-    ];
-    forAllSystems = nixpkgs.lib.genAttrs systems;
-
     nvchadConfig = pkgs: {
       lazy-lock = builtins.readFile ./nvim/nvchad-starter/lazy-lock.json;
       extraPackages = with pkgs; [
@@ -52,24 +45,7 @@
         yarn
       ];
     };
-
   in {
-    packages = forAllSystems (system: let
-      pkgs = import nixpkgs {inherit system;};
-    in {
-      default = (nix4nvchad.packages.${system}.default.override (nvchadConfig pkgs)).overrideAttrs (old: {
-        dontWrapQtApps = true;
-      });
-      nvchad = self.packages.${system}.default;
-    });
-
-    apps = forAllSystems (system: {
-      default = {
-        type = "app";
-        program = "${self.packages.${system}.default}/bin/nvim";
-      };
-    });
-
     homeManagerModules.default = {
       pkgs,
       config,
