@@ -17,68 +17,121 @@
   };
 
   outputs = {
+    self,
     nixpkgs,
     nix4nvchad,
     ...
   }: let
-    nvchadConfig = pkgs: {
-      lazy-lock = builtins.readFile ./nvim/nvchad-starter/lazy-lock.json;
-      extraPackages = with pkgs; [
-        alejandra
-        black
-        gcc
-        git
-        gnumake
-        go
-        imagemagick
-        isort
-        nixd
-        nodejs
-        pkgs.python3Packages.debugpy
-        pyright
-        gopls
-        kdePackages.qtdeclarative
-        shfmt
-        stylua
-        tree-sitter
-        vscode-langservers-extracted
-        yarn
-      ];
-    };
+    systems = [
+      "x86_64-linux"
+      "aarch64-linux"
+    ];
+    forAllSystems = nixpkgs.lib.genAttrs systems;
   in {
+    packages = forAllSystems (system: let
+      pkgs = import nixpkgs {inherit system;};
+      lib = pkgs.lib;
+      termCfg = import ./lib {inherit lib;};
+      wrappers = import ./lib/wrappers.nix {inherit pkgs lib;};
+
+      nvchadPkg = (nix4nvchad.packages.${system}.default.override (termCfg.nvchadConfig pkgs)).overrideAttrs (_: {
+        dontWrapQtApps = true;
+      });
+
+      tmuxPkg = wrappers.mkTmuxWrapper pkgs;
+      fishPkg = wrappers.mkFishWrapper pkgs;
+      nvimPkg = pkgs.symlinkJoin {
+        name = "axenide-nvim";
+        paths = [nvchadPkg];
+      };
+
+      passthrough = {
+        thefuck = pkgs.thefuck;
+        starship = pkgs.starship;
+        zoxide = pkgs.zoxide;
+        neofetch = pkgs.neofetch;
+        ffmpeg = pkgs.ffmpeg;
+        lazygit = pkgs.lazygit;
+      };
+
+      defaultBundle = pkgs.symlinkJoin {
+        name = "axenide-term";
+        paths = [
+          tmuxPkg
+          fishPkg
+          nvimPkg
+        ] ++ builtins.attrValues passthrough;
+      };
+    in {
+      default = defaultBundle;
+      tmux = tmuxPkg;
+      fish = fishPkg;
+      nvim = nvimPkg;
+      nvchad = nvchadPkg;
+    } // builtins.mapAttrs (_: p: p) {
+      inherit (passthrough) thefuck starship zoxide neofetch ffmpeg lazygit;
+    });
+
+    apps = forAllSystems (system: let
+      pkgs = import nixpkgs {inherit system;};
+      lib = pkgs.lib;
+      termCfg = import ./lib {inherit lib;};
+      wrappers = import ./lib/wrappers.nix {inherit pkgs lib;};
+    in {
+      tmux = {
+        type = "app";
+        program = "${wrappers.mkTmuxWrapper pkgs}/bin/tmux";
+      };
+      fish = {
+        type = "app";
+        program = "${wrappers.mkFishWrapper pkgs}/bin/fish";
+      };
+      nvim = {
+        type = "app";
+        program = "${self.packages.${system}.nvim}/bin/nvim";
+      };
+    });
+
+    devShells = forAllSystems (system: let
+      pkgs = import nixpkgs {inherit system;};
+    in {
+      default = pkgs.mkShell {
+        packages = [self.packages.${system}.default];
+      };
+    });
+
     homeManagerModules.default = {
       pkgs,
-      config,
       lib,
+      config,
+      nix4nvchad,
       ...
     }: let
-      cfg = config.programs.axenide-term;
+      termCfg = import ./lib {inherit lib;};
     in {
       options.programs.axenide-term = {
         enable = lib.mkEnableOption "Axenide's terminal environment";
       };
 
-      config = lib.mkIf cfg.enable {
+      config = lib.mkIf config.programs.axenide-term.enable {
         imports = [nix4nvchad.homeManagerModules.default];
 
         programs.nvchad =
-          (nvchadConfig pkgs)
+          (termCfg.nvchadConfig pkgs)
           // {
             enable = true;
           };
 
-        home.packages = [pkgs.fish pkgs.tmux pkgs.thefuck pkgs.starship pkgs.zoxide pkgs.neofetch pkgs.ffmpeg];
+        home.packages = termCfg.extraPackages pkgs;
 
-        programs.fish = {
-          enable = true;
-        };
+        programs.fish.enable = true;
 
         xdg.configFile = {
-          "fish/config.fish".source = ./fish/config.fish;
-          "fish/aliases.fish".source = ./fish/aliases.fish;
-          "fish/env.fish".source = ./fish/env.fish;
-          "fish/ffmpeg.fish".source = ./fish/ffmpeg.fish;
-          "fish/fish_plugins".source = ./fish/fish_plugins;
+          "fish/config.fish".source = termCfg.configPaths.fish.config;
+          "fish/aliases.fish".source = termCfg.configPaths.fish.aliases;
+          "fish/env.fish".source = termCfg.configPaths.fish.env;
+          "fish/ffmpeg.fish".source = termCfg.configPaths.fish.ffmpeg;
+          "fish/fish_plugins".source = termCfg.configPaths.fish.plugins;
         };
 
         programs.tmux = {
@@ -90,12 +143,11 @@
           paneBaseIndex = 1;
           renumberWindows = true;
           keyMode = "vi";
-          extraConfig = builtins.readFile ./tmux/tmux.conf + "\n" + builtins.readFile ./tmux/minimal.conf;
-          plugins = with pkgs; [
-            tmuxPlugins.sensible
-            tmuxPlugins.yank
-            tmuxPlugins.vim-tmux-navigator
-          ];
+          extraConfig =
+            builtins.readFile termCfg.configPaths.tmux
+            + "\n"
+            + builtins.readFile termCfg.configPaths.tmuxMinimal;
+          plugins = termCfg.tmuxPlugins pkgs;
         };
       };
     };
