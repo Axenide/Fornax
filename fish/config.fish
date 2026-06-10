@@ -7,11 +7,10 @@ set -U fish_greeting
 fish_add_path -g $HOME/.cache/.bun/bin
 # Go
 fish_add_path -g $HOME/.local/share/go/bin
-thefuck --alias | source
 starship init fish | source
-source ~/.config/fish/aliases.fish
-source ~/.config/fish/ffmpeg.fish
-source ~/.config/fish/env.fish
+source (dirname (status -f))/aliases.fish
+source (dirname (status -f))/ffmpeg.fish
+source (dirname (status -f))/env.fish
 zoxide init fish | source
 
 

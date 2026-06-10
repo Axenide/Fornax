@@ -46,10 +46,9 @@
       };
 
       passthrough = {
-        thefuck = pkgs.thefuck;
         starship = pkgs.starship;
         zoxide = pkgs.zoxide;
-        neofetch = pkgs.neofetch;
+        fastfetch = pkgs.fastfetch;
         ffmpeg = pkgs.ffmpeg;
         lazygit = pkgs.lazygit;
       };
@@ -69,7 +68,7 @@
       nvim = nvimPkg;
       nvchad = nvchadPkg;
     } // builtins.mapAttrs (_: p: p) {
-      inherit (passthrough) thefuck starship zoxide neofetch ffmpeg lazygit;
+      inherit (passthrough) starship zoxide fastfetch ffmpeg lazygit;
     });
 
     apps = forAllSystems (system: let

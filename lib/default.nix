@@ -1,5 +1,5 @@
 {lib}: let
-  inherit (builtins) readFile pathExists;
+  inherit (builtins) readFile;
 in {
   configPaths = {
     tmux = ./. + "/../tmux/tmux.conf";
@@ -18,28 +18,22 @@ in {
     cat ${./../tmux/tmux.conf} ${./../tmux/minimal.conf} > $out
   '';
 
-  fishUserConfig = pkgs: pkgs.runCommand "axenide-fish-user-config" {} ''
-    mkdir -p $out
-    ln -s ${./../fish/config.fish} $out/config.fish
-    ln -s ${./../fish/aliases.fish} $out/aliases.fish
-    ln -s ${./../fish/env.fish} $out/env.fish
-    ln -s ${./../fish/ffmpeg.fish} $out/ffmpeg.fish
-    ln -s ${./../fish/fish_plugins} $out/fish_plugins
-  '';
-
   fishXdgRoot = pkgs: pkgs.runCommand "axenide-fish-xdg" {} ''
-    mkdir -p $out
-    ln -s ${(fishUserConfig pkgs)} $out/fish
+    mkdir -p $out/fish
+    ln -s ${./../fish/config.fish} $out/fish/config.fish
+    ln -s ${./../fish/aliases.fish} $out/fish/aliases.fish
+    ln -s ${./../fish/env.fish} $out/fish/env.fish
+    ln -s ${./../fish/ffmpeg.fish} $out/fish/ffmpeg.fish
+    ln -s ${./../fish/fish_plugins} $out/fish/fish_plugins
   '';
 
   extraPackages = pkgs: [
     pkgs.fish
     pkgs.tmux
     pkgs.neovim
-    pkgs.thefuck
     pkgs.starship
     pkgs.zoxide
-    pkgs.neofetch
+    pkgs.fastfetch
     pkgs.ffmpeg
     pkgs.lazygit
   ];
