@@ -53,13 +53,6 @@
       ];
     };
 
-    tmuxPluginsBundle = pkgs: pkgs.runCommand "axenide-tmux-plugins" {} ''
-      mkdir -p $out
-      cp -R ${./tmux/plugins/tpm} $out/tpm
-      cp -R ${./tmux/plugins/tmux-sensible} $out/tmux-sensible
-      cp -R ${./tmux/plugins/vim-tmux-navigator} $out/vim-tmux-navigator
-      cp -R ${./tmux/plugins/tmux-yank} $out/tmux-yank
-    '';
   in {
     packages = forAllSystems (system: let
       pkgs = import nixpkgs {inherit system;};
@@ -68,7 +61,6 @@
         dontWrapQtApps = true;
       });
       nvchad = self.packages.${system}.default;
-      tmux-plugins = tmuxPluginsBundle pkgs;
     });
 
     apps = forAllSystems (system: {
@@ -85,15 +77,6 @@
       ...
     }: let
       cfg = config.programs.axenide-term;
-      tmuxPlugins = tmuxPluginsBundle pkgs;
-
-      linkTmuxPlugins = pkgs.writeShellScript "link-axenide-tmux-plugins" ''
-        mkdir -p "$HOME/.tmux/plugins"
-        ln -sfT "${tmuxPlugins}/tpm" "$HOME/.tmux/plugins/tpm"
-        ln -sfT "${tmuxPlugins}/tmux-sensible" "$HOME/.tmux/plugins/tmux-sensible"
-        ln -sfT "${tmuxPlugins}/vim-tmux-navigator" "$HOME/.tmux/plugins/vim-tmux-navigator"
-        ln -sfT "${tmuxPlugins}/tmux-yank" "$HOME/.tmux/plugins/tmux-yank"
-      '';
     in {
       options.programs.axenide-term = {
         enable = lib.mkEnableOption "Axenide's terminal environment";
@@ -122,14 +105,22 @@
           "fish/fish_plugins".source = ./fish/fish_plugins;
         };
 
-        home.file = {
-          ".config/tmux/tmux.conf".source = ./tmux/tmux.conf;
-          ".config/tmux/minimal.conf".source = ./tmux/minimal.conf;
+        programs.tmux = {
+          enable = true;
+          shell = "${pkgs.fish}/bin/fish";
+          terminal = "tmux-256color";
+          mouse = true;
+          baseIndex = 1;
+          paneBaseIndex = 1;
+          renumberWindows = true;
+          keyMode = "vi";
+          extraConfig = builtins.readFile ./tmux/tmux.conf + "\n" + builtins.readFile ./tmux/minimal.conf;
+          plugins = with pkgs; [
+            tmuxPlugins.sensible
+            tmuxPlugins.yank
+            tmuxPlugins.vim-tmux-navigator
+          ];
         };
-
-        home.activation.linkTmuxPlugins = lib.hm.dag.entryAfter ["writeBoundary"] ''
-          ${linkTmuxPlugins}
-        '';
       };
     };
   };
