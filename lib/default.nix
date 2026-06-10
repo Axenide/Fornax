@@ -36,6 +36,7 @@ in {
     pkgs.fastfetch
     pkgs.ffmpeg
     pkgs.lazygit
+    pkgs.cava
   ];
 
   tmuxPlugins = pkgs: with pkgs.tmuxPlugins; [

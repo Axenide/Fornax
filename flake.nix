@@ -51,6 +51,7 @@
         fastfetch = pkgs.fastfetch;
         ffmpeg = pkgs.ffmpeg;
         lazygit = pkgs.lazygit;
+        cava = pkgs.cava;
       };
 
       defaultBundle = pkgs.symlinkJoin {
@@ -68,7 +69,7 @@
       nvim = nvimPkg;
       nvchad = nvchadPkg;
     } // builtins.mapAttrs (_: p: p) {
-      inherit (passthrough) starship zoxide fastfetch ffmpeg lazygit;
+      inherit (passthrough) starship zoxide fastfetch ffmpeg lazygit cava;
     });
 
     apps = forAllSystems (system: let
