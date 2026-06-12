@@ -44,6 +44,10 @@
         name = "axenide-nvim";
         paths = [nvchadPkg];
       };
+      restoreSecretsPkg = wrappers.mkRestoreSecretsWrapper pkgs {
+        restore-secrets = termCfg.configPaths.fish.restoreSecrets;
+        fishWrapper = fishPkg;
+      };
 
       passthrough = {
         starship = pkgs.starship;
@@ -52,6 +56,7 @@
         ffmpeg = pkgs.ffmpeg;
         lazygit = pkgs.lazygit;
         cava = pkgs.cava;
+        bw = pkgs.bitwarden-cli;
       };
 
       defaultBundle = pkgs.symlinkJoin {
@@ -60,6 +65,7 @@
           tmuxPkg
           fishPkg
           nvimPkg
+          restoreSecretsPkg
         ] ++ builtins.attrValues passthrough;
       };
     in {
@@ -68,8 +74,9 @@
       fish = fishPkg;
       nvim = nvimPkg;
       nvchad = nvchadPkg;
+      restore-secrets = restoreSecretsPkg;
     } // builtins.mapAttrs (_: p: p) {
-      inherit (passthrough) starship zoxide fastfetch ffmpeg lazygit cava;
+      inherit (passthrough) starship zoxide fastfetch ffmpeg lazygit cava bw;
     });
 
     apps = forAllSystems (system: let
@@ -77,6 +84,7 @@
       lib = pkgs.lib;
       termCfg = import ./lib {inherit lib;};
       wrappers = import ./lib/wrappers.nix {inherit pkgs lib;};
+      fishPkg = wrappers.mkFishWrapper pkgs;
     in {
       tmux = {
         type = "app";
@@ -84,11 +92,15 @@
       };
       fish = {
         type = "app";
-        program = "${wrappers.mkFishWrapper pkgs}/bin/fish";
+        program = "${fishPkg}/bin/fish";
       };
       nvim = {
         type = "app";
         program = "${self.packages.${system}.nvim}/bin/nvim";
+      };
+      restore-secrets = {
+        type = "app";
+        program = "${self.packages.${system}.restore-secrets}/bin/restore-secrets";
       };
     });
 
@@ -132,6 +144,7 @@
           "fish/env.fish".source = termCfg.configPaths.fish.env;
           "fish/ffmpeg.fish".source = termCfg.configPaths.fish.ffmpeg;
           "fish/fish_plugins".source = termCfg.configPaths.fish.plugins;
+          "fish/functions/restore-secrets.fish".source = termCfg.configPaths.fish.restoreSecrets;
         };
 
         programs.tmux = {

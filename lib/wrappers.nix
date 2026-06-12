@@ -19,4 +19,12 @@ in {
       export XDG_DATA_HOME="${cfg.fishXdgRoot pkgs}/data"
       exec ${pkgs.fish}/bin/fish --init-command="source ${cfg.fishXdgRoot pkgs}/fish/config.fish" "$@"
     '';
+
+  mkRestoreSecretsWrapper = pkgs: {
+    restore-secrets,
+    fishWrapper,
+  }:
+    pkgs.writeShellScriptBin "restore-secrets" ''
+      exec ${fishWrapper}/bin/fish -c "source ${restore-secrets}; restore-secrets"
+    '';
 }

@@ -12,6 +12,7 @@ set -xg XDG_PICTURES_DIR (xdg-user-dir PICTURES)
 set -xg XDG_VIDEOS_DIR (xdg-user-dir VIDEOS)
 
 set -l _config_dir (dirname (status -f))
-if test -e $_config_dir/api.fish
-  source $_config_dir/api.fish
+set -l _secrets_file ~/.local/share/secrets/fish.fish
+if test -e $_secrets_file
+  source $_secrets_file
 end

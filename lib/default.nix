@@ -10,21 +10,26 @@ in {
       env = ./. + "/../fish/env.fish";
       ffmpeg = ./. + "/../fish/ffmpeg.fish";
       plugins = ./. + "/../fish/fish_plugins";
+      functionsDir = ./. + "/../fish/functions";
+      restoreSecrets = ./. + "/../fish/functions/restore-secrets.fish";
     };
     nvimStarter = ./. + "/../nvim/nvchad-starter";
   };
+
+  secretsFile = "$HOME/.local/share/secrets/fish.fish";
 
   mergedTmuxConf = pkgs: pkgs.runCommand "axenide-tmux.conf" {} ''
     cat ${./../tmux/tmux.conf} ${./../tmux/minimal.conf} > $out
   '';
 
   fishXdgRoot = pkgs: pkgs.runCommand "axenide-fish-xdg" {} ''
-    mkdir -p $out/fish
+    mkdir -p $out/fish/functions
     ln -s ${./../fish/config.fish} $out/fish/config.fish
     ln -s ${./../fish/aliases.fish} $out/fish/aliases.fish
     ln -s ${./../fish/env.fish} $out/fish/env.fish
     ln -s ${./../fish/ffmpeg.fish} $out/fish/ffmpeg.fish
     ln -s ${./../fish/fish_plugins} $out/fish/fish_plugins
+    ln -s ${./../fish/functions/restore-secrets.fish} $out/fish/functions/restore-secrets.fish
   '';
 
   extraPackages = pkgs: [
@@ -37,6 +42,7 @@ in {
     pkgs.ffmpeg
     pkgs.lazygit
     pkgs.cava
+    pkgs.bitwarden-cli
   ];
 
   tmuxPlugins = pkgs: with pkgs.tmuxPlugins; [
