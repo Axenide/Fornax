@@ -13,11 +13,12 @@ in {
       exec ${pkgs.tmux}/bin/tmux -f ${cfg.mergedTmuxConf pkgs} "$@"
     '';
 
-  mkFishWrapper = pkgs:
+  mkFishWrapper = pkgs: let
+    linkScript = (import ./default.nix {inherit lib;}).fishLinkToHome pkgs;
+  in
     pkgs.writeShellScriptBin "fish" ''
-      export XDG_CONFIG_HOME="${cfg.fishXdgRoot pkgs}"
-      export XDG_DATA_HOME="${cfg.fishXdgRoot pkgs}/data"
-      exec ${pkgs.fish}/bin/fish --init-command="source ${cfg.fishXdgRoot pkgs}/fish/config.fish" "$@"
+      ${linkScript}
+      exec ${pkgs.fish}/bin/fish "$@"
     '';
 
   mkRestoreSecretsWrapper = pkgs: {
@@ -25,6 +26,7 @@ in {
     fishWrapper,
   }:
     pkgs.writeShellScriptBin "restore-secrets" ''
+      ${(import ./default.nix {inherit lib;}).fishLinkToHome pkgs}
       exec ${fishWrapper}/bin/fish -c "source ${restore-secrets}; restore-secrets"
     '';
 }
