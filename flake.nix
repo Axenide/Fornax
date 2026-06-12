@@ -57,6 +57,7 @@
         lazygit = pkgs.lazygit;
         cava = pkgs.cava;
         bw = pkgs.bitwarden-cli;
+        yazi = pkgs.yazi;
       };
 
       defaultBundle = pkgs.symlinkJoin {
@@ -80,7 +81,7 @@
         restore-secrets = restoreSecretsPkg;
       }
       // builtins.mapAttrs (_: p: p) {
-        inherit (passthrough) starship zoxide fastfetch ffmpeg lazygit cava bw;
+        inherit (passthrough) starship zoxide fastfetch ffmpeg lazygit cava bw yazi;
       });
 
     apps = forAllSystems (system: let

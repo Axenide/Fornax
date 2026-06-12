@@ -58,6 +58,7 @@ in {
     pkgs.lazygit
     pkgs.cava
     pkgs.bitwarden-cli
+    pkgs.yazi
   ];
 
   tmuxPlugins = pkgs: with pkgs.tmuxPlugins; [
