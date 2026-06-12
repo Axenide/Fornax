@@ -1,5 +1,5 @@
 {
-  description = "Axenide's terminal environment: Neovim (NvChad), tmux and Fish.";
+  description = "Axenide's terminal environment.";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
@@ -61,23 +61,27 @@
 
       defaultBundle = pkgs.symlinkJoin {
         name = "axenide-term";
-        paths = [
-          tmuxPkg
-          fishPkg
-          nvimPkg
-          restoreSecretsPkg
-        ] ++ builtins.attrValues passthrough;
+        paths =
+          [
+            tmuxPkg
+            fishPkg
+            nvimPkg
+            restoreSecretsPkg
+          ]
+          ++ builtins.attrValues passthrough;
       };
-    in {
-      default = defaultBundle;
-      tmux = tmuxPkg;
-      fish = fishPkg;
-      nvim = nvimPkg;
-      nvchad = nvchadPkg;
-      restore-secrets = restoreSecretsPkg;
-    } // builtins.mapAttrs (_: p: p) {
-      inherit (passthrough) starship zoxide fastfetch ffmpeg lazygit cava bw;
-    });
+    in
+      {
+        default = defaultBundle;
+        tmux = tmuxPkg;
+        fish = fishPkg;
+        nvim = nvimPkg;
+        nvchad = nvchadPkg;
+        restore-secrets = restoreSecretsPkg;
+      }
+      // builtins.mapAttrs (_: p: p) {
+        inherit (passthrough) starship zoxide fastfetch ffmpeg lazygit cava bw;
+      });
 
     apps = forAllSystems (system: let
       pkgs = import nixpkgs {inherit system;};
