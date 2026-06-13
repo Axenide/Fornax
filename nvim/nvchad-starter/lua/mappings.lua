@@ -4,6 +4,9 @@ require "nvchad.mappings"
 
 local map = vim.keymap.set
 
+map("n", "j", "gj", { noremap = true, silent = true, desc = "Move down visual line" })
+map("n", "k", "gk", { noremap = true, silent = true, desc = "Move up visual line" })
+
 map("n", ";", ":", { desc = "CMD enter command mode" })
 
 map("n", "<leader>fm", function()
