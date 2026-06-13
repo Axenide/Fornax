@@ -9,6 +9,27 @@
     ln -s ${./../fish/fish_plugins} $out/fish/fish_plugins
     ln -s ${./../fish/functions/restore-secrets.fish} $out/fish/functions/restore-secrets.fish
   '';
+
+  toolingPackages = pkgs: with pkgs; [
+    alejandra
+    black
+    gcc
+    gnumake
+    go
+    imagemagick
+    isort
+    nixd
+    nodejs
+    python3Packages.debugpy
+    pyright
+    gopls
+    kdePackages.qtdeclarative
+    shfmt
+    stylua
+    tree-sitter
+    vscode-langservers-extracted
+    yarn
+  ];
 in {
   configPaths = {
     tmux = ./. + "/../tmux/tmux.conf";
@@ -47,20 +68,22 @@ in {
               "$HOME/.config/fish/functions/restore-secrets.fish"
     '';
 
-  extraPackages = pkgs: [
-    pkgs.fish
-    pkgs.tmux
-    pkgs.neovim
-    pkgs.starship
-    pkgs.zoxide
-    pkgs.fastfetch
-    pkgs.ffmpeg
-    pkgs.lazygit
-    pkgs.cava
-    pkgs.bitwarden-cli
-    pkgs.yazi
-    pkgs.git
-  ];
+  extraPackages = pkgs:
+    [
+      pkgs.fish
+      pkgs.tmux
+      pkgs.neovim
+      pkgs.starship
+      pkgs.zoxide
+      pkgs.fastfetch
+      pkgs.ffmpeg
+      pkgs.lazygit
+      pkgs.cava
+      pkgs.bitwarden-cli
+      pkgs.yazi
+      pkgs.git
+    ]
+    ++ (toolingPackages pkgs);
 
   tmuxPlugins = pkgs: with pkgs.tmuxPlugins; [
     sensible
@@ -70,26 +93,8 @@ in {
 
   nvchadConfig = pkgs: {
     lazy-lock = readFile (./. + "/../nvim/nvchad-starter/lazy-lock.json");
-    extraPackages = with pkgs; [
-      alejandra
-      black
-      gcc
-      git
-      gnumake
-      go
-      imagemagick
-      isort
-      nixd
-      nodejs
-      pkgs.python3Packages.debugpy
-      pyright
-      gopls
-      kdePackages.qtdeclarative
-      shfmt
-      stylua
-      tree-sitter
-      vscode-langservers-extracted
-      yarn
-    ];
+    extraPackages = toolingPackages pkgs;
   };
+
+  inherit toolingPackages;
 }

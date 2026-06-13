@@ -83,7 +83,8 @@
             restoreSecretsPkg
             fornaxPkg
           ]
-          ++ builtins.attrValues passthrough;
+          ++ builtins.attrValues passthrough
+          ++ (termCfg.toolingPackages pkgs);
       };
     in
       {
