@@ -29,4 +29,20 @@ in {
       ${(import ./default.nix {inherit lib;}).fishLinkToHome pkgs}
       exec ${fishWrapper}/bin/fish -c "source ${restore-secrets}; restore-secrets"
     '';
+
+  mkCleanSecretsWrapper = pkgs: {
+    clean-secrets,
+    fishWrapper,
+  }:
+    pkgs.writeShellScriptBin "clean-secrets" ''
+      exec ${fishWrapper}/bin/fish -c "source ${clean-secrets}; clean-secrets"
+    '';
+
+  mkShredSecretsWrapper = pkgs: {
+    shred-secrets,
+    fishWrapper,
+  }:
+    pkgs.writeShellScriptBin "shred-secrets" ''
+      exec ${fishWrapper}/bin/fish -c "source ${shred-secrets}; shred-secrets"
+    '';
 }

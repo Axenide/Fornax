@@ -1,6 +1,6 @@
 {lib}: let
   inherit (builtins) readFile;
-  fishXdgRoot = pkgs: pkgs.runCommand "axenide-fish-xdg" {} ''
+    fishXdgRoot = pkgs: pkgs.runCommand "axenide-fish-xdg" {} ''
     mkdir -p $out/fish/functions
     ln -s ${./../fish/config.fish} $out/fish/config.fish
     ln -s ${./../fish/aliases.fish} $out/fish/aliases.fish
@@ -8,6 +8,8 @@
     ln -s ${./../fish/ffmpeg.fish} $out/fish/ffmpeg.fish
     ln -s ${./../fish/fish_plugins} $out/fish/fish_plugins
     ln -s ${./../fish/functions/restore-secrets.fish} $out/fish/functions/restore-secrets.fish
+    ln -s ${./../fish/functions/clean-secrets.fish} $out/fish/functions/clean-secrets.fish
+    ln -s ${./../fish/functions/shred-secrets.fish} $out/fish/functions/shred-secrets.fish
   '';
 
   toolingPackages = pkgs: with pkgs; [
@@ -42,6 +44,8 @@ in {
       plugins = ./. + "/../fish/fish_plugins";
       functionsDir = ./. + "/../fish/functions";
       restoreSecrets = ./. + "/../fish/functions/restore-secrets.fish";
+      cleanSecrets = ./. + "/../fish/functions/clean-secrets.fish";
+      shredSecrets = ./. + "/../fish/functions/shred-secrets.fish";
     };
     nvimStarter = ./. + "/../nvim/nvchad-starter";
   };

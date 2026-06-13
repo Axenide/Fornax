@@ -48,6 +48,14 @@
         restore-secrets = termCfg.configPaths.fish.restoreSecrets;
         fishWrapper = fishPkg;
       };
+      cleanSecretsPkg = wrappers.mkCleanSecretsWrapper pkgs {
+        clean-secrets = termCfg.configPaths.fish.cleanSecrets;
+        fishWrapper = fishPkg;
+      };
+      shredSecretsPkg = wrappers.mkShredSecretsWrapper pkgs {
+        shred-secrets = termCfg.configPaths.fish.shredSecrets;
+        fishWrapper = fishPkg;
+      };
 
       fornaxPkg = pkgs.writeShellScriptBin "fornax" ''
         # Attach to an existing fornax session, or start a new one.
@@ -81,6 +89,8 @@
             fishPkg
             nvimPkg
             restoreSecretsPkg
+            cleanSecretsPkg
+            shredSecretsPkg
             fornaxPkg
           ]
           ++ builtins.attrValues passthrough
@@ -95,6 +105,8 @@
         nvim = nvimPkg;
         nvchad = nvchadPkg;
         restore-secrets = restoreSecretsPkg;
+        clean-secrets = cleanSecretsPkg;
+        shred-secrets = shredSecretsPkg;
       }
       // builtins.mapAttrs (_: p: p) {
         inherit (passthrough) starship zoxide fastfetch ffmpeg lazygit cava bw yazi git;
@@ -130,6 +142,14 @@
       restore-secrets = {
         type = "app";
         program = "${self.packages.${system}.restore-secrets}/bin/restore-secrets";
+      };
+      clean-secrets = {
+        type = "app";
+        program = "${self.packages.${system}.clean-secrets}/bin/clean-secrets";
+      };
+      shred-secrets = {
+        type = "app";
+        program = "${self.packages.${system}.shred-secrets}/bin/shred-secrets";
       };
     });
 
@@ -174,6 +194,8 @@
           "fish/ffmpeg.fish".source = termCfg.configPaths.fish.ffmpeg;
           "fish/fish_plugins".source = termCfg.configPaths.fish.plugins;
           "fish/functions/restore-secrets.fish".source = termCfg.configPaths.fish.restoreSecrets;
+          "fish/functions/clean-secrets.fish".source = termCfg.configPaths.fish.cleanSecrets;
+          "fish/functions/shred-secrets.fish".source = termCfg.configPaths.fish.shredSecrets;
         };
 
         programs.tmux = {
