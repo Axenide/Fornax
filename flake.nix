@@ -1,5 +1,5 @@
 {
-  description = "Fornax: Axenide's terminal environment.";
+  description = "Fornax: Axenide's alchemical furnace.";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
@@ -49,6 +49,18 @@
         fishWrapper = fishPkg;
       };
 
+      fornaxPkg = pkgs.writeShellScriptBin "fornax" ''
+        # Attach to an existing fornax session, or start a new one.
+        # The bundle's PATH (set up by `nix run` / `nix develop`) is
+        # inherited by the shell inside tmux, so fish, nvim, lazygit,
+        # yazi, bw, etc. are all available without a profile install.
+        if ${tmuxPkg}/bin/tmux has-session -t fornax 2>/dev/null; then
+          exec ${tmuxPkg}/bin/tmux attach-session -t fornax
+        else
+          exec ${tmuxPkg}/bin/tmux new-session -A -s fornax -c "$PWD"
+        fi
+      '';
+
       passthrough = {
         starship = pkgs.starship;
         zoxide = pkgs.zoxide;
@@ -69,12 +81,14 @@
             fishPkg
             nvimPkg
             restoreSecretsPkg
+            fornaxPkg
           ]
           ++ builtins.attrValues passthrough;
       };
     in
       {
         default = defaultBundle;
+        fornax = fornaxPkg;
         tmux = tmuxPkg;
         fish = fishPkg;
         nvim = nvimPkg;
@@ -92,6 +106,14 @@
       wrappers = import ./lib/wrappers.nix {inherit pkgs lib;};
       fishPkg = wrappers.mkFishWrapper pkgs;
     in {
+      default = {
+        type = "app";
+        program = "${self.packages.${system}.fornax}/bin/fornax";
+      };
+      fornax = {
+        type = "app";
+        program = "${self.packages.${system}.fornax}/bin/fornax";
+      };
       tmux = {
         type = "app";
         program = "${wrappers.mkTmuxWrapper pkgs}/bin/tmux";

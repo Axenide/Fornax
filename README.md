@@ -1,7 +1,7 @@
 # Fornax
-*A furnace of transmutation; a place where raw materials are refined, transformed, and forged into something greater.*
+*Axenide's alchemical furnace.*
 
-Fornax is an opinionated Nix flake containing the tools I use for development. Currently:
+**Fornax** is an opinionated Nix flake containing the tools I use for development. Currently:
 - tmux
 - fish
 - starship
