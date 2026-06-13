@@ -1,5 +1,5 @@
 {
-  description = "Axenide's terminal environment.";
+  description = "Fornax: Axenide's terminal environment.";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
@@ -62,7 +62,7 @@
       };
 
       defaultBundle = pkgs.symlinkJoin {
-        name = "axenide-term";
+        name = "fornax";
         paths =
           [
             tmuxPkg
@@ -127,11 +127,11 @@
     }: let
       termCfg = import ./lib {inherit lib;};
     in {
-      options.programs.axenide-term = {
-        enable = lib.mkEnableOption "Axenide's terminal environment";
+      options.programs.fornax = {
+        enable = lib.mkEnableOption "Fornax: Axenide's terminal environment";
       };
 
-      config = lib.mkIf config.programs.axenide-term.enable {
+      config = lib.mkIf config.programs.fornax.enable {
         imports = [nix4nvchad.homeManagerModules.default];
 
         programs.nvchad =
