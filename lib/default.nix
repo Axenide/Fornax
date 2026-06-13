@@ -86,6 +86,7 @@ in {
       pkgs.bitwarden-cli
       pkgs.yazi
       pkgs.git
+      pkgs.coreutils
     ]
     ++ (toolingPackages pkgs);
 
