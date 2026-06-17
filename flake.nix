@@ -4,15 +4,9 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
 
-    nvchad-starter = {
-      url = "path:./nvim/nvchad-starter";
-      flake = false;
-    };
-
     nix4nvchad = {
       url = "github:nix-community/nix4nvchad";
       inputs.nixpkgs.follows = "nixpkgs";
-      inputs.nvchad-starter.follows = "nvchad-starter";
     };
   };
 
@@ -34,7 +28,9 @@
       termCfg = import ./lib {inherit lib;};
       wrappers = import ./lib/wrappers.nix {inherit pkgs lib;};
 
-      nvchadPkg = (nix4nvchad.packages.${system}.default.override (termCfg.nvchadConfig pkgs)).overrideAttrs (_: {
+      nvchadPkg = (nix4nvchad.packages.${system}.default.override (termCfg.nvchadConfig pkgs // {
+        starterRepo = self + "/nvim/nvchad-starter";
+      })).overrideAttrs (_: {
         dontWrapQtApps = true;
       });
 
@@ -175,7 +171,11 @@
       };
 
       config = lib.mkIf config.programs.fornax.enable {
-        imports = [nix4nvchad.homeManagerModules.default];
+        imports = [
+          (import "${nix4nvchad}/nix/module.nix" {
+            starterRepo = self + "/nvim/nvchad-starter";
+          })
+        ];
 
         programs.nvchad =
           (termCfg.nvchadConfig pkgs)
