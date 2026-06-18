@@ -46,9 +46,7 @@ in {
       exec ${fishWrapper}/bin/fish -c "source ${shred-secrets}; shred-secrets"
     '';
 
-  mkOpencodeWrapper = pkgs: let
-    opencodeXdg = (import ./default.nix {inherit lib;}).opencodeXdgRoot pkgs;
-  in
+  mkOpencodeWrapper = pkgs: opencodeXdg:
     pkgs.writeShellApplication {
       name = "opencode";
       runtimeInputs = [pkgs.nodejs pkgs.mcp-nixos];
@@ -60,10 +58,11 @@ in {
             export OPENCODE_CONFIG OPENCODE_CONFIG_DIR
             ;;
           *)
-            if [ ! -e "$HOME/.config/opencode" ]; then
+            if [ ! -e "$HOME/.config/opencode/opencode.json" ]; then
               mkdir -p "$HOME/.config/opencode"
-              cp -rL ${opencodeXdg}/opencode/. "$HOME/.config/opencode/"
-              chmod -R u+w "$HOME/.config/opencode"
+              cp -rL ${opencodeXdg}/opencode/opencode.json "$HOME/.config/opencode/opencode.json"
+              cp -rL ${opencodeXdg}/opencode/AGENTS.md "$HOME/.config/opencode/AGENTS.md"
+              chmod u+w "$HOME/.config/opencode/opencode.json" "$HOME/.config/opencode/AGENTS.md"
             fi
             ;;
         esac

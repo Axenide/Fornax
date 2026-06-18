@@ -8,12 +8,18 @@
       url = "github:nix-community/nix4nvchad";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    agent-skills-nix = {
+      url = "github:Kyure-A/agent-skills-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = {
     self,
     nixpkgs,
     nix4nvchad,
+    agent-skills-nix,
     ...
   }: let
     systems = [
@@ -52,7 +58,24 @@
         shred-secrets = termCfg.configPaths.fish.shredSecrets;
         fishWrapper = fishPkg;
       };
-      opencodePkg = wrappers.mkOpencodeWrapper pkgs;
+      opentuiSkillSrc = pkgs.fetchFromGitHub {
+        owner = "anomalyco";
+        repo = "opentui";
+        rev = "71b129abdc0854ba5153486b5f29356488223006";
+        hash = "sha256-OLA7eNjQZPVsRufIZPrMYIQedcA16IEkHzChm+gXBIA=";
+      };
+
+      opencodeXdg = pkgs.runCommand "axenide-opencode-xdg" {} ''
+        mkdir -p $out/opencode
+        cp -rL ${./opencode/opencode.json} $out/opencode/opencode.json
+        cp -rL ${./opencode/AGENTS.md} $out/opencode/AGENTS.md
+        mkdir -p $out/opencode/skills
+        cp -rL ${./skills}/. $out/opencode/skills/
+        cp -rL ${opentuiSkillSrc}/packages/web/src/content $out/opencode/skills/opentui
+        chmod -R u+w $out
+      '';
+
+      opencodePkg = wrappers.mkOpencodeWrapper pkgs opencodeXdg;
 
       fornaxPkg = pkgs.writeShellScriptBin "fornax" ''
         # Attach to an existing fornax session, or start a new one.
@@ -108,6 +131,8 @@
       }
       // builtins.mapAttrs (_: p: p) {
         inherit (passthrough) starship zoxide fastfetch ffmpeg lazygit cava bw yazi git opencode;
+      } // {
+        opentui-skill = opentuiSkillSrc;
       });
 
     apps = forAllSystems (system: let
@@ -167,6 +192,8 @@
       lib,
       config,
       nix4nvchad,
+      agent-skills-nix,
+      opentuiSkillPath,
       ...
     }: let
       termCfg = import ./lib {inherit lib;};
@@ -180,6 +207,7 @@
           (import "${nix4nvchad}/nix/module.nix" {
             starterRepo = self + "/nvim/nvchad-starter";
           })
+          agent-skills-nix.homeManagerModules.default
         ];
 
         programs.nvchad =
@@ -217,6 +245,25 @@
             + "\n"
             + builtins.readFile termCfg.configPaths.tmuxMinimal;
           plugins = termCfg.tmuxPlugins pkgs;
+        };
+
+        agent-skills = {
+          sources.opentui = {
+            path = opentuiSkillPath;
+            idPrefix = "opentui";
+          };
+          sources.local = {
+            path = ./skills;
+          };
+          skills.enable = [
+            "opentui"
+            "bubbletea-go-tui-builder"
+          ];
+          targets.opencode = {
+            enable = true;
+            structure = "copy-tree";
+            dest = "$HOME/.config/opencode/skills";
+          };
         };
       };
     };
