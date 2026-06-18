@@ -46,11 +46,25 @@ in {
       exec ${fishWrapper}/bin/fish -c "source ${shred-secrets}; shred-secrets"
     '';
 
-  mkOpencodeWrapper = pkgs:
+  mkOpencodeWrapper = pkgs: let
+    opencodeXdg = (import ./default.nix {inherit lib;}).opencodeXdgRoot pkgs;
+  in
     pkgs.writeShellApplication {
       name = "opencode";
-      runtimeInputs = [pkgs.nodejs];
+      runtimeInputs = [pkgs.nodejs pkgs.mcp-nixos];
       text = ''
+        case "$0" in
+          /nix/store/*)
+            : "''${OPENCODE_CONFIG:=${opencodeXdg}/opencode/opencode.json}"
+            : "''${OPENCODE_CONFIG_DIR:=${opencodeXdg}/opencode}"
+            export OPENCODE_CONFIG OPENCODE_CONFIG_DIR
+            ;;
+          *)
+            if [ -z "''${XDG_CONFIG_HOME:-}" ] && [ ! -e "$HOME/.config/opencode" ]; then
+              export XDG_CONFIG_HOME="${opencodeXdg}"
+            fi
+            ;;
+        esac
         exec npx -y opencode-ai@latest "$@"
       '';
     };

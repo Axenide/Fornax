@@ -21,6 +21,7 @@
     imagemagick
     isort
     nixd
+    mcp-nixos
     nodejs
     python3Packages.debugpy
     pyright
@@ -60,6 +61,13 @@ in {
   '';
 
   inherit fishXdgRoot;
+
+  opencodeXdgRoot = pkgs: pkgs.runCommand "axenide-opencode-xdg" {} ''
+    mkdir -p $out/opencode
+    ln -s ${./../opencode/opencode.json} $out/opencode/opencode.json
+    ln -s ${./../opencode/AGENTS.md} $out/opencode/AGENTS.md
+    ln -s ${./../opencode/skills} $out/opencode/skills
+  '';
 
   fishLinkToHome = pkgs:
     pkgs.writeShellScript "axenide-fish-link-home" ''

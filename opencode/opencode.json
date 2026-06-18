@@ -27,5 +27,6 @@
     }
   },
   "permission": "allow",
-  "lsp": true
+  "lsp": true,
+  "instructions": ["./AGENTS.md"]
 }
