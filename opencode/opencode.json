@@ -23,7 +23,7 @@
     },
     "nixos": {
       "type": "local",
-      "command": ["uvx", "mcp-nixos"]
+      "command": ["mcp-nixos"]
     }
   },
   "permission": "allow",

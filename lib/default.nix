@@ -90,6 +90,7 @@ in {
       pkgs.yazi
       pkgs.git
       pkgs.coreutils
+      pkgs.mcp-nixos
     ]
     ++ (toolingPackages pkgs);
 
