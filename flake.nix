@@ -52,6 +52,7 @@
         shred-secrets = termCfg.configPaths.fish.shredSecrets;
         fishWrapper = fishPkg;
       };
+      opencodePkg = wrappers.mkOpencodeWrapper pkgs;
 
       fornaxPkg = pkgs.writeShellScriptBin "fornax" ''
         # Attach to an existing fornax session, or start a new one.
@@ -75,6 +76,7 @@
         bw = pkgs.bitwarden-cli;
         yazi = pkgs.yazi;
         git = pkgs.git;
+        opencode = opencodePkg;
       };
 
       defaultBundle = pkgs.symlinkJoin {
@@ -105,13 +107,12 @@
         shred-secrets = shredSecretsPkg;
       }
       // builtins.mapAttrs (_: p: p) {
-        inherit (passthrough) starship zoxide fastfetch ffmpeg lazygit cava bw yazi git;
+        inherit (passthrough) starship zoxide fastfetch ffmpeg lazygit cava bw yazi git opencode;
       });
 
     apps = forAllSystems (system: let
       pkgs = import nixpkgs {inherit system;};
       lib = pkgs.lib;
-      termCfg = import ./lib {inherit lib;};
       wrappers = import ./lib/wrappers.nix {inherit pkgs lib;};
       fishPkg = wrappers.mkFishWrapper pkgs;
     in {
@@ -134,6 +135,10 @@
       nvim = {
         type = "app";
         program = "${self.packages.${system}.nvim}/bin/nvim";
+      };
+      opencode = {
+        type = "app";
+        program = "${self.packages.${system}.opencode}/bin/opencode";
       };
       restore-secrets = {
         type = "app";
@@ -196,6 +201,7 @@
           "fish/functions/restore-secrets.fish".source = termCfg.configPaths.fish.restoreSecrets;
           "fish/functions/clean-secrets.fish".source = termCfg.configPaths.fish.cleanSecrets;
           "fish/functions/shred-secrets.fish".source = termCfg.configPaths.fish.shredSecrets;
+          "opencode".source = termCfg.configPaths.opencode.dir;
         };
 
         programs.tmux = {

@@ -45,4 +45,13 @@ in {
     pkgs.writeShellScriptBin "shred-secrets" ''
       exec ${fishWrapper}/bin/fish -c "source ${shred-secrets}; shred-secrets"
     '';
+
+  mkOpencodeWrapper = pkgs:
+    pkgs.writeShellApplication {
+      name = "opencode";
+      runtimeInputs = [pkgs.nodejs];
+      text = ''
+        exec npx -y opencode-ai@latest "$@"
+      '';
+    };
 }

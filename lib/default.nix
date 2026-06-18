@@ -48,6 +48,9 @@ in {
       shredSecrets = ./. + "/../fish/functions/shred-secrets.fish";
     };
     nvimStarter = ./. + "/../nvim/nvchad-starter";
+    opencode = {
+      dir = ./. + "/../opencode";
+    };
   };
 
   secretsFile = "$HOME/.local/share/secrets/fish.fish";

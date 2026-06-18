@@ -1,0 +1,31 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp",
+      "enabled": true
+    },
+    "deepwiki": {
+      "type": "remote",
+      "url": "https://mcp.deepwiki.com/mcp",
+      "enabled": true
+    },
+    "gitmcp": {
+      "type": "remote",
+      "url": "https://gitmcp.io/docs",
+      "enabled": true
+    },
+    "excalidraw": {
+      "type": "remote",
+      "url": "https://mcp.excalidraw.com",
+      "enabled": true
+    },
+    "nixos": {
+      "type": "local",
+      "command": ["uvx", "mcp-nixos"]
+    }
+  },
+  "permission": "allow",
+  "lsp": true
+}
