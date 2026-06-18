@@ -49,9 +49,6 @@ in {
       shredSecrets = ./. + "/../fish/functions/shred-secrets.fish";
     };
     nvimStarter = ./. + "/../nvim/nvchad-starter";
-    opencode = {
-      dir = ./. + "/../opencode";
-    };
   };
 
   secretsFile = "$HOME/.local/share/secrets/fish.fish";
@@ -61,13 +58,6 @@ in {
   '';
 
   inherit fishXdgRoot;
-
-  opencodeXdgRoot = pkgs: pkgs.runCommand "axenide-opencode-xdg" {} ''
-    mkdir -p $out/opencode
-    ln -s ${./../opencode/opencode.json} $out/opencode/opencode.json
-    ln -s ${./../opencode/AGENTS.md} $out/opencode/AGENTS.md
-    ln -s ${./../opencode/skills} $out/opencode/skills
-  '';
 
   fishLinkToHome = pkgs:
     pkgs.writeShellScript "axenide-fish-link-home" ''
