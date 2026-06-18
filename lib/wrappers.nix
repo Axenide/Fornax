@@ -64,6 +64,17 @@ in {
               cp -rL ${opencodeXdg}/opencode/AGENTS.md "$HOME/.config/opencode/AGENTS.md"
               chmod u+w "$HOME/.config/opencode/opencode.json" "$HOME/.config/opencode/AGENTS.md"
             fi
+            if [ -d "${opencodeXdg}/opencode/skills" ]; then
+              for skill_dir in "${opencodeXdg}/opencode/skills/"*/; do
+                [ -d "$skill_dir" ] || continue
+                skill_name=$(basename "$skill_dir")
+                if [ ! -e "$HOME/.config/opencode/skills/$skill_name/SKILL.md" ]; then
+                  mkdir -p "$HOME/.config/opencode/skills/$skill_name"
+                  cp -rL "$skill_dir/." "$HOME/.config/opencode/skills/$skill_name/"
+                  chmod -R u+w "$HOME/.config/opencode/skills/$skill_name"
+                fi
+              done
+            fi
             ;;
         esac
         exec npx -y opencode-ai@latest "$@"
