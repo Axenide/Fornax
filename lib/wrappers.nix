@@ -60,8 +60,10 @@ in {
             export OPENCODE_CONFIG OPENCODE_CONFIG_DIR
             ;;
           *)
-            if [ -z "''${XDG_CONFIG_HOME:-}" ] && [ ! -e "$HOME/.config/opencode" ]; then
-              export XDG_CONFIG_HOME="${opencodeXdg}"
+            if [ ! -e "$HOME/.config/opencode" ]; then
+              mkdir -p "$HOME/.config/opencode"
+              cp -rL ${opencodeXdg}/opencode/. "$HOME/.config/opencode/"
+              chmod -R u+w "$HOME/.config/opencode"
             fi
             ;;
         esac

@@ -201,7 +201,6 @@
           "fish/functions/restore-secrets.fish".source = termCfg.configPaths.fish.restoreSecrets;
           "fish/functions/clean-secrets.fish".source = termCfg.configPaths.fish.cleanSecrets;
           "fish/functions/shred-secrets.fish".source = termCfg.configPaths.fish.shredSecrets;
-          "opencode".source = termCfg.configPaths.opencode.dir;
         };
 
         programs.tmux = {
