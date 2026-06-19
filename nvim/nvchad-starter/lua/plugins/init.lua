@@ -181,16 +181,27 @@ return {
     branch = "main",
     build = function()
       if vim.fn.executable "tree-sitter" == 1 then
-        require("nvim-treesitter").install { "lua", "markdown", "markdown_inline", "python", "query", "vim", "vimdoc" }
+        require("nvim-treesitter").install {
+          "lua",
+          "markdown",
+          "markdown_inline",
+          "python",
+          "query",
+          "typescript",
+          "vim",
+          "vimdoc",
+        }
       end
     end,
     config = function()
       local treesitter = require "nvim-treesitter"
-      local base_parsers = { "lua", "markdown", "markdown_inline", "python", "query", "vim", "vimdoc" }
+      local base_parsers = { "lua", "markdown", "markdown_inline", "python", "query", "typescript", "vim", "vimdoc" }
 
       if vim.fn.executable "tree-sitter" == 1 then
         treesitter.install(base_parsers)
       end
+
+      vim.treesitter.language.register("markdown", "mdx")
 
       local installing = {}
 
@@ -200,7 +211,7 @@ return {
 
       local function parsers_for_filetype(filetype)
         local parser = vim.treesitter.language.get_lang(filetype) or filetype
-        if parser == "markdown" then
+        if parser == "markdown" or parser == "mdx" then
           return { "markdown", "markdown_inline" }
         end
         return { parser }
