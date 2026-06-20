@@ -19,7 +19,6 @@
     self,
     nixpkgs,
     nix4nvchad,
-    agent-skills-nix,
     ...
   }: let
     systems = [
