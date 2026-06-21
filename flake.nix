@@ -98,6 +98,7 @@
         bw = pkgs.bitwarden-cli;
         yazi = pkgs.yazi;
         git = pkgs.git;
+        btop = pkgs.btop;
         opencode = opencodePkg;
       };
 
@@ -129,7 +130,7 @@
         shred-secrets = shredSecretsPkg;
       }
       // builtins.mapAttrs (_: p: p) {
-        inherit (passthrough) starship zoxide fastfetch ffmpeg lazygit cava bw yazi git opencode;
+        inherit (passthrough) starship zoxide fastfetch ffmpeg lazygit cava bw yazi git btop opencode;
       } // {
         opentui-skill = opentuiSkillSrc;
       });
