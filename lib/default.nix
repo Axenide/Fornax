@@ -37,6 +37,7 @@ in {
   configPaths = {
     tmux = ./. + "/../tmux/tmux.conf";
     tmuxMinimal = ./. + "/../tmux/minimal.conf";
+    btop = ./. + "/../btop/btop.conf";
     fish = {
       config = ./. + "/../fish/config.fish";
       aliases = ./. + "/../fish/aliases.fish";

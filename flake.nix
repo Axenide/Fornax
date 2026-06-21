@@ -98,7 +98,7 @@
         bw = pkgs.bitwarden-cli;
         yazi = pkgs.yazi;
         git = pkgs.git;
-        btop = pkgs.btop;
+        btop = wrappers.mkBtopWrapper pkgs;
         opencode = opencodePkg;
       };
 
@@ -221,6 +221,7 @@
         programs.fish.enable = true;
 
         xdg.configFile = {
+          "btop/btop.conf".source = termCfg.configPaths.btop;
           "fish/config.fish".source = termCfg.configPaths.fish.config;
           "fish/aliases.fish".source = termCfg.configPaths.fish.aliases;
           "fish/env.fish".source = termCfg.configPaths.fish.env;

@@ -78,4 +78,9 @@ in {
         exec npx -y opencode-ai@latest "$@"
       '';
     };
+
+  mkBtopWrapper = pkgs:
+    pkgs.writeShellScriptBin "btop" ''
+      exec ${pkgs.btop}/bin/btop --config ${cfg.configPaths.btop} "$@"
+    '';
 }
