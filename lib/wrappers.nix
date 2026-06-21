@@ -4,21 +4,19 @@
     name = "axenide-tmux-plugins-bundle";
     paths = cfg.tmuxPlugins pkgs;
   };
+  mkFishWrapper = pkgs:
+    pkgs.writeShellScriptBin "fish" ''
+      ${cfg.fishLinkToHome pkgs}
+      exec ${pkgs.fish}/bin/fish "$@"
+    '';
 in {
-  inherit bundleTmuxPlugins;
+  inherit bundleTmuxPlugins mkFishWrapper;
 
   mkTmuxWrapper = pkgs:
     pkgs.writeShellScriptBin "tmux" ''
       export TMUX_PLUGIN_DIR="${bundleTmuxPlugins}"
+      export SHELL="${mkFishWrapper pkgs}/bin/fish"
       exec ${pkgs.tmux}/bin/tmux -f ${cfg.mergedTmuxConf pkgs} "$@"
-    '';
-
-  mkFishWrapper = pkgs: let
-    linkScript = (import ./default.nix {inherit lib;}).fishLinkToHome pkgs;
-  in
-    pkgs.writeShellScriptBin "fish" ''
-      ${linkScript}
-      exec ${pkgs.fish}/bin/fish "$@"
     '';
 
   mkRestoreSecretsWrapper = pkgs: {
