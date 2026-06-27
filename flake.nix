@@ -260,6 +260,7 @@
           skills.enable = [
             "opentui"
             "bubbletea-go-tui-builder"
+            "rust-gtk4-expert"
           ];
           targets.opencode = {
             enable = true;
