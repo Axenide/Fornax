@@ -94,6 +94,7 @@
         fastfetch = pkgs.fastfetch;
         ffmpeg = pkgs.ffmpeg;
         lazygit = pkgs.lazygit;
+        lazysql = pkgs.lazysql;
         cava = pkgs.cava;
         bw = pkgs.bitwarden-cli;
         yazi = pkgs.yazi;
@@ -130,7 +131,7 @@
         shred-secrets = shredSecretsPkg;
       }
       // builtins.mapAttrs (_: p: p) {
-        inherit (passthrough) starship zoxide fastfetch ffmpeg lazygit cava bw yazi git btop opencode;
+        inherit (passthrough) starship zoxide fastfetch ffmpeg lazygit lazysql cava bw yazi git btop opencode;
       } // {
         opentui-skill = opentuiSkillSrc;
       });

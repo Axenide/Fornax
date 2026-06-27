@@ -7,6 +7,7 @@
 - starship
 - NvChad
 - lazygit
+- lazysql
 - zoxide
 - yazi
 Among some extras like `fastfetch`, `cava` and `ffmpeg`.

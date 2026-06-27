@@ -84,6 +84,7 @@ in {
       pkgs.fastfetch
       pkgs.ffmpeg
       pkgs.lazygit
+      pkgs.lazysql
       pkgs.cava
       pkgs.bitwarden-cli
       pkgs.yazi
