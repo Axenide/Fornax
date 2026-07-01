@@ -23,6 +23,7 @@
     nixd
     mcp-nixos
     nodejs
+    prettier
     python3Packages.debugpy
     pyright
     gopls
