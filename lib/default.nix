@@ -90,6 +90,7 @@ in {
       pkgs.bitwarden-cli
       pkgs.yazi
       pkgs.git
+      pkgs.gh
       pkgs.btop
       pkgs.coreutils
       pkgs.mcp-nixos
