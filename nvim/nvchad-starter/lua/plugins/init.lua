@@ -171,6 +171,7 @@ return {
 
   {
     "wurli/urlpreview.nvim",
+    ft = { "markdown", "quarto", "vimwiki" },
     opts = {
       auto_preview = true,
       keymap = "<leader>K",
