@@ -15,6 +15,7 @@
   toolingPackages = pkgs: with pkgs; [
     alejandra
     black
+    curl
     gcc
     gnumake
     go

@@ -170,6 +170,19 @@ return {
   { "ellisonleao/glow.nvim", config = true, cmd = "Glow" },
 
   {
+    "wurli/urlpreview.nvim",
+    opts = {
+      auto_preview = true,
+      keymap = "<leader>K",
+      max_window_width = 100,
+      hl_group_title = "@markup.heading",
+      hl_group_description = "@markup.quote",
+      hl_group_url = "Underlined",
+      window_border = "none",
+    },
+  },
+
+  {
     "iamcco/markdown-preview.nvim",
     ft = "markdown",
     cmd = { "MarkdownPreview", "MarkdownPreviewStop" },
