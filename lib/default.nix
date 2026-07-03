@@ -16,7 +16,6 @@
     alejandra
     black
     curl
-    gcc
     gnumake
     go
     imagemagick
