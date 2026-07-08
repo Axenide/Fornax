@@ -2,6 +2,7 @@
   inherit (builtins) readFile;
     fishXdgRoot = pkgs: pkgs.runCommand "axenide-fish-xdg" {} ''
     mkdir -p $out/fish/functions
+    mkdir -p $out/fish/conf.d
     ln -s ${./../fish/config.fish} $out/fish/config.fish
     ln -s ${./../fish/aliases.fish} $out/fish/aliases.fish
     ln -s ${./../fish/env.fish} $out/fish/env.fish
@@ -10,6 +11,7 @@
     ln -s ${./../fish/functions/restore-secrets.fish} $out/fish/functions/restore-secrets.fish
     ln -s ${./../fish/functions/clean-secrets.fish} $out/fish/functions/clean-secrets.fish
     ln -s ${./../fish/functions/shred-secrets.fish} $out/fish/functions/shred-secrets.fish
+    ln -s ${./../fish/conf.d/fish_frozen_theme.fish} $out/fish/conf.d/fish_frozen_theme.fish
   '';
 
   toolingPackages = pkgs: with pkgs; [
@@ -45,6 +47,8 @@ in {
       env = ./. + "/../fish/env.fish";
       ffmpeg = ./. + "/../fish/ffmpeg.fish";
       plugins = ./. + "/../fish/fish_plugins";
+      confDir = ./. + "/../fish/conf.d";
+      fish_frozen_theme = ./. + "/../fish/conf.d/fish_frozen_theme.fish";
       functionsDir = ./. + "/../fish/functions";
       restoreSecrets = ./. + "/../fish/functions/restore-secrets.fish";
       cleanSecrets = ./. + "/../fish/functions/clean-secrets.fish";

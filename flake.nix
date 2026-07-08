@@ -232,6 +232,7 @@
           "fish/functions/restore-secrets.fish".source = termCfg.configPaths.fish.restoreSecrets;
           "fish/functions/clean-secrets.fish".source = termCfg.configPaths.fish.cleanSecrets;
           "fish/functions/shred-secrets.fish".source = termCfg.configPaths.fish.shredSecrets;
+          "fish/conf.d/fish_frozen_theme.fish".source = termCfg.configPaths.fish.fish_frozen_theme;
         };
 
         programs.tmux = {
