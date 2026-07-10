@@ -154,9 +154,10 @@ EOF
         '';
 
         home.activation.setupFishEnv = lib.hm.dag.entryAfter ["linkGeneration"] ''
-          ${pkgs.fish}/bin/fish -c 'set -Ux NPM_CONFIG_PREFIX $HOME/.cache/npm/global'
-          ${pkgs.fish}/bin/fish -c 'set -Ux BUN_INSTALL $HOME/.cache/bun'
-          ${pkgs.fish}/bin/fish -c 'set -Ux fish_user_paths $HOME/.cache/npm/global/bin $HOME/.cache/bun/bin $HOME/.nix-profile/bin'
+          # env.fish is the single source of truth for runtime fish env.
+          # Push a no-op source command to every active tmux pane so they
+          # pick up whatever changes this switch made to env.fish
+          # (NPM_CONFIG_PREFIX, BUN_INSTALL, fish_add_path entries, etc.).
           if ${pkgs.tmux}/bin/tmux info >/dev/null 2>&1; then
             ${pkgs.tmux}/bin/tmux list-panes -a -F '#{session_name}:#{window_index}.#{pane_index}' 2>/dev/null \
               | while IFS= read -r pane; do
