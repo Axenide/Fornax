@@ -1,4 +1,7 @@
-{pkgs, lib}: {
+{pkgs, lib}:
+let
+  cfg = import ./default.nix {inherit lib;};
+in {
   mkOpencodeWrapper = pkgs: opencodeXdg:
     pkgs.writeShellApplication {
       name = "opencode";
@@ -21,6 +24,17 @@
             ;;
         esac
         exec npx -y opencode-ai@latest "$@"
+      '';
+    };
+
+  mkNpmWrapper = pkgs:
+    pkgs.writeShellApplication {
+      name = "npm";
+      runtimeInputs = [pkgs.nodejs];
+      text = ''
+        export NPM_CONFIG_PREFIX="$HOME/.local/share/npm-global"
+        export NPM_CONFIG_GLOBAL_PREFIX="$HOME/.local/share/npm-global"
+        exec ${pkgs.nodejs}/bin/npm "$@"
       '';
     };
 }

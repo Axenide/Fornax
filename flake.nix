@@ -60,6 +60,7 @@
       '';
 
       opencodePkg = wrappers.mkOpencodeWrapper pkgs opencodeXdg;
+      npmPkg = wrappers.mkNpmWrapper pkgs;
 
       nvchadPkg = (nix4nvchad.packages.${pkgs.system}.default.override (termCfg.nvchadConfig pkgs // {
         starterRepo = self + "/nvim/nvchad-starter";
@@ -96,14 +97,9 @@
       };
 
       config = lib.mkIf config.programs.fornax.enable {
-        home.packages = termCfg.extraPackages pkgs ++ [bunPkg nvchadPkg opencodePkg];
+        home.packages = termCfg.extraPackages pkgs ++ [bunPkg nvchadPkg opencodePkg npmPkg];
 
         programs.fish.enable = true;
-
-        home.file.".npmrc".text = ''
-          prefix=${config.xdg.dataHome}/npm-global
-          global-prefix=${config.xdg.dataHome}/npm-global
-        '';
 
         xdg.configFile = {
           "btop/btop.conf".source = termCfg.configPaths.btop;
