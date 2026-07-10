@@ -66,13 +66,37 @@
       })).overrideAttrs (_: {
         dontWrapQtApps = true;
       });
+
+      bunVersion = "1.3.14";
+      bunSrcs = {
+        x86_64-linux = pkgs.fetchurl {
+          url = "https://github.com/oven-sh/bun/releases/download/bun-v${bunVersion}/bun-linux-x64.zip";
+          sha256 = "951ee2aee855f08595aeec6225226a298d3fea83a3dcd6465c09cbccdf7e848f";
+        };
+        aarch64-linux = pkgs.fetchurl {
+          url = "https://github.com/oven-sh/bun/releases/download/bun-v${bunVersion}/bun-linux-aarch64.zip";
+          sha256 = "a27ffb63a8310375836e0d6f668ae17fa8d8d18b88c37c821c65331973a19a3b";
+        };
+      };
+      bunSrc = bunSrcs.${pkgs.stdenv.hostPlatform.system} or (throw "fornax: bun: unsupported system ${pkgs.stdenv.hostPlatform.system}");
+      bunPkg = pkgs.stdenvNoCC.mkDerivation {
+        pname = "bun";
+        version = bunVersion;
+        src = bunSrc;
+        nativeBuildInputs = [pkgs.unzip];
+        sourceRoot = ".";
+        installPhase = ''
+          mkdir -p $out/bin
+          install -m755 bun $out/bin/bun
+        '';
+      };
     in {
       options.programs.fornax = {
         enable = lib.mkEnableOption "Fornax: Axenide's terminal environment";
       };
 
       config = lib.mkIf config.programs.fornax.enable {
-        home.packages = termCfg.extraPackages pkgs ++ [nvchadPkg opencodePkg];
+        home.packages = termCfg.extraPackages pkgs ++ [bunPkg nvchadPkg opencodePkg];
 
         programs.fish.enable = true;
 

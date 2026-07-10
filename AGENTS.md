@@ -31,6 +31,15 @@ Global agent rules (commit style, branch safety, comments policy, language) live
 
 The opentui skill is pinned internally at `flake.nix:33` via `fetchFromGitHub` and used by the module's `opencodeXdg`. Bump `rev` and `hash` together when updating.
 
+Bun is pinned internally at `flake.nix:73` via `fetchurl` against the official GitHub release zip. To bump:
+
+1. Change `bunVersion` (`flake.nix:73`).
+2. Regenerate both `sha256`:
+   ```
+   nix-prefetch-url --type sha256 https://github.com/oven-sh/bun/releases/download/bun-v${VER}/bun-linux-x64.zip
+   nix-prefetch-url --type sha256 https://github.com/oven-sh/bun/releases/download/bun-v${VER}/bun-linux-aarch64.zip
+   ```
+
 ## Activation Hooks
 
 Both `entryAfter ["linkGeneration"]` so they run after symlinks are in place:
