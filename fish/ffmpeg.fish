@@ -1,10 +1,8 @@
-# Make video compatible
 function vcompat
     ffmpeg -i $argv[1] -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" -c:v libx264 -profile:v high -level:v 4.2 -pix_fmt yuv420p -movflags +faststart -c:a aac -strict -2 (dirname $argv[1])/(basename -s .mp4 $argv[1])_compat.mp4
 end
 funcsave -q vcompat
 
-# Make video compatible AND low bitrate
 function vcompatlb
     if test (count $argv) -lt 1
         echo "Usage: vcompat archivo.mp4 [tasa_de_bits]"
@@ -24,7 +22,6 @@ function vcompatlb
 end
 funcsave -q vcompatlb
 
-# Convert videos to MJPEG format with "_dr" suffix
 function drconv
     if test (count $argv) -lt 1
         echo "Usage: drconv archivo1 archivo2 ..."

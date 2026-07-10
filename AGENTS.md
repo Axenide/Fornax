@@ -12,14 +12,13 @@ Global agent rules (commit style, branch safety, comments policy, language) live
 
 ## Layout
 
-- `flake.nix` — outputs. `devShells.default` exposes `termCfg.toolingPackages pkgs`. `homeManagerModules.default` (`flake.nix:48`) wires fish, tmux, NvChad, the opencode wrapper, the `xdg.configFile` symlinks, and the two activation hooks (`refreshTmux`, `syncOpencodeConfig`).
-- `lib/default.nix` — pure config: `configPaths`, `extraPackages`, `toolingPackages`, `tmuxPlugins`, `nvchadConfig`, `secretsFile`.
-- `lib/wrappers.nix` — removed; the last wrapper it held (`mkOpencodeWrapper`) was for the dropped bundle path. Install `opencode-ai` via `npm i -g` (see `setupNpm` hook); fornax still ships the config + skills.
-- `fish/` — fish config files; `fish/functions/` holds the secrets helpers. `fish_plugins` only declares `jorgebucaran/fisher` (plugin manager, not actual plugins).
-- `tmux/tmux.conf` + `tmux/minimal.conf` — concatenated at build time by home-manager's `programs.tmux.extraConfig` (`flake.nix:110`).
+- `flake.nix` — outputs. `devShells.default` exposes `termCfg.toolingPackages pkgs`. `homeManagerModules.default` (`flake.nix:35`) wires fish, tmux, NvChad, the `xdg.configFile` symlinks, and the four activation hooks (`refreshTmux`, `syncOpencodeConfig`, `setupNpm`, `installNvChad`).
+- `lib/default.nix` — pure config: `configPaths`, `extraPackages`, `toolingPackages`, `tmuxPlugins`, `nvchadConfig`, `secretsFile`. No wrapper module: binaries are exposed as-is.
+- `fish/` — fish config files; `fish/functions/` holds the secrets helpers. `fish_plugins` only declares `jorgebucaran/fisher` (the plugin manager; no plugins installed by fornax).
+- `tmux/tmux.conf` + `tmux/minimal.conf` — concatenated at build time by home-manager's `programs.tmux.extraConfig` (`flake.nix:120`).
 - `nvim/nvchad-starter/` — vendored NvChad v2.5 starter, locally customized. Theme: `chadwal`.
 - `opencode/` — OpenCode CLI config bundle (config, global rules, own `.gitignore` for `node_modules`, lockfiles, `antigravity-*`).
-- `skills/` — local OpenCode skills, copied into `opencodeXdg` (`flake.nix:68`) and materialized to `~/.config/opencode/skills/` on every switch by `syncOpencodeConfig`. Current entries: `bubbletea-go-tui-builder`, `rust-gtk4-expert`.
+- `skills/` — local OpenCode skills, copied into `opencodeXdg` (`flake.nix:51`) and materialized to `~/.config/opencode/skills/` on every switch by `syncOpencodeConfig`. Current entries: `bubbletea-go-tui-builder`, `rust-gtk4-expert`.
 - Root `.gitignore` only ignores `result` / `result-*` (Nix build symlinks). Don't add generated Nix store paths to commits.
 
 ## Flake Inputs
@@ -29,11 +28,11 @@ Global agent rules (commit style, branch safety, comments policy, language) live
 - `nixpkgs` (`nixpkgs-unstable`) — package source.
 - `nix4nvchad` (`github:nix-community/nix4nvchad`) — used by the home-manager module to materialize the NvChad derivation.
 
-The opentui skill is pinned internally at `flake.nix:33` via `fetchFromGitHub` and used by the module's `opencodeXdg`. Bump `rev` and `hash` together when updating.
+The opentui skill is pinned internally at `flake.nix:44` via `fetchFromGitHub` and used by the module's `opencodeXdg`. Bump `rev` and `hash` together when updating.
 
-Bun is pinned internally at `flake.nix:73` via `fetchurl` against the official GitHub release zip. To bump:
+Bun is pinned internally at `flake.nix:67` via `fetchurl` against the official GitHub release zip. To bump:
 
-1. Change `bunVersion` (`flake.nix:73`).
+1. Change `bunVersion` (`flake.nix:67`).
 2. Regenerate both `sha256`:
    ```
    nix-prefetch-url --type sha256 https://github.com/oven-sh/bun/releases/download/bun-v${VER}/bun-linux-x64.zip
@@ -42,27 +41,29 @@ Bun is pinned internally at `flake.nix:73` via `fetchurl` against the official G
 
 ## Activation Hooks
 
-Both `entryAfter ["linkGeneration"]` so they run after symlinks are in place:
+All four are `entryAfter ["linkGeneration"]` so they run after symlinks are in place:
 
-- `refreshTmux` (`flake.nix:118`) — non-destructive: if a tmux server is alive, updates `default-shell` + global `SHELL` to the new fish and re-sources `~/.config/tmux/tmux.conf`. Existing panes are left untouched.
-- `syncOpencodeConfig` (`flake.nix:125`) — overwrites `~/.config/opencode/{opencode.json, AGENTS.md, skills/}` from `${opencodeXdg}/opencode` on every switch. The repo is the source of truth; local edits there are wiped.
+- `refreshTmux` (`flake.nix:128`) — non-destructive: if a tmux server is alive, updates `default-shell` + global `SHELL` to the new fish and re-sources `~/.config/tmux/tmux.conf`. Existing panes are left untouched.
+- `syncOpencodeConfig` (`flake.nix:136`) — overwrites `~/.config/opencode/{opencode.json, AGENTS.md, skills/}` from `${opencodeXdg}/opencode` on every switch. The repo is the source of truth; local edits there are wiped. Anything else under `~/.config/opencode/` is left alone.
+- `setupNpm` (`flake.nix:144`) — replaces `~/.npmrc` with one pinning `prefix` and `global-prefix` to `~/.cache/npm/global`. Required for `npm i -g` under Nix's read-only nodejs.
+- `installNvChad` (`flake.nix:153`) — destructive: if `~/.config/nvim` exists as a real directory, it is renamed to `~/.config/nvim_<timestamp>.bak`; then the NvChad config from `${nvchadPkg}` is copied in. Don't rely on pre-existing nvim config surviving a `home-manager switch`.
 
 ## Adding a Tool
 
-1. Add the nixpkgs package to `extraPackages` in `lib/default.nix:43` — wired into `home.packages` by `flake.nix:81`.
+1. Add the nixpkgs package to `extraPackages` in `lib/default.nix:49` — wired into `home.packages` by `flake.nix:96`.
 2. If it's dev tooling that should also be available inside nvim, add it to `toolingPackages` in `lib/default.nix:4`. `toolingPackages` is reused by `extraPackages` and `nvchadConfig.extraPackages`.
 
 When adding a new `fish/functions/*.fish`, register it in:
 
-1. `configPaths.fish.<name>` (`lib/default.nix:25`).
-2. The matching `xdg.configFile` entry (`flake.nix:86`).
+1. `configPaths.fish.<name>` (`lib/default.nix:31`).
+2. The matching `xdg.configFile` entry (`flake.nix:100`).
 
 Missing either silently drops the function from the install.
 
 ## Adding a Skill
 
 1. Drop the skill directory under `skills/<name>/` with a `SKILL.md` (frontmatter `name` must match the directory name). It auto-flows into `~/.config/opencode/skills/` on every switch via the `syncOpencodeConfig` hook.
-2. The opentui skill is pinned inside the flake at `flake.nix:33` — no `skills/` entry needed; `syncOpencodeConfig` copies it from `${opentuiSkillSrc}`.
+2. The opentui skill is pinned inside the flake at `flake.nix:44` — no `skills/` entry needed; `syncOpencodeConfig` copies it from `${opentuiSkillSrc}`.
 
 ## Secrets Workflow
 
@@ -72,7 +73,7 @@ Missing either silently drops the function from the install.
 - `clean-secrets` — `rm` + `rmdir`.
 - `shred-secrets` — `shred -u -v -z -n 3` + `rmdir`.
 
-All three are fish functions symlinked by home-manager (`flake.nix:96-100`) and callable as `restore-secrets`, `clean-secrets`, `shred-secrets` from any fish shell.
+All three are fish functions symlinked by home-manager (`flake.nix:107-109`) and callable as `restore-secrets`, `clean-secrets`, `shred-secrets` from any fish shell.
 
 ## Neovim
 
@@ -82,7 +83,7 @@ NvChad v2.5 (`nvim/nvchad-starter/init.lua:27`). Format with stylua per `nvim/nv
 
 - Prefix is `C-Space` (`tmux/tmux.conf:20`), not the default `C-b`.
 - `vim-tmux-navigator` (C-hjkl) is loaded conditionally on both `$TMUX_PLUGIN_DIR/share/tmux-plugins/...` (nixpkgs layout) and `~/.tmux/plugins/...` (Home Manager flat layout) — `tmux/tmux.conf:43-46`. Do not collapse those two `if-shell` checks; commit `1068e9b` was a fix for this exact path.
-- Plugins via `tmuxPlugins` in `lib/default.nix:67`: `sensible`, `yank`, `vim-tmux-navigator`.
+- Plugins via `tmuxPlugins` in `lib/default.nix:71`: `sensible`, `yank`, `vim-tmux-navigator`.
 - `allow-passthrough on` is required for yazi.
 
 ## OpenCode Sub-bundle
@@ -90,7 +91,7 @@ NvChad v2.5 (`nvim/nvchad-starter/init.lua:27`). Format with stylua per `nvim/nv
 `opencode/opencode.json` enables remote MCP servers `context7`, `deepwiki`, `gitmcp`, `excalidraw`, plus a local `nixos` server backed by `mcp-nixos` from nixpkgs. `permission: "allow"` (all tool calls auto-approved — be careful), `lsp: true`, `instructions: ["./AGENTS.md"]` (loads the global rules file into every OpenCode session).
 
 Materialization:
-- The derivation `${opencodeXdg}/opencode/` (`flake.nix:43`) combines `opencode/opencode.json`, `opencode/AGENTS.md`, the local `skills/`, and the pinned opentui skill.
+- The derivation `${opencodeXdg}/opencode/` (`flake.nix:51`) combines `opencode/opencode.json`, `opencode/AGENTS.md`, the local `skills/`, and the pinned opentui skill.
 - The `syncOpencodeConfig` hook overwrites `~/.config/opencode/` from that derivation on every switch.
 - The `opencode` binary itself is NOT shipped by fornax. Install `opencode-ai` via `npm i -g opencode-ai@latest` (the `setupNpm` hook makes `npm i -g` work under Nix); it then reads fornax-managed config from `~/.config/opencode/opencode.json` (the default location).
 
@@ -119,7 +120,6 @@ There is no CI, no test suite, and no pre-commit hook. The only correctness loop
 
 These are user-specific and will fail on a fresh machine. Do not "fix" them for portability unless asked.
 
-- `fish/config.fish:17-19` — `conda-on` hardcodes `/home/adriano/.local/share/miniforge3/bin/conda`.
-- `fish/aliases.fish:1` — `anifetch` references `~/.adrien.gif`.
-- `fish/config.fish:7-9` — assumes `~/.cache/.bun/bin` and `~/.local/share/go/bin` exist.
-- `lib/wrappers.nix` — `opencode` wrapper pins `opencode-ai@latest`; the version is determined at runtime by `npx`, not pinned in the flake.
+- `fish/config.fish:18-19` — `conda-on` hardcodes `/home/adriano/.local/share/miniforge3/bin/conda`.
+- `fish/aliases.fish` — `anifetch` references `~/.adrien.gif`.
+- `fish/config.fish:7-8` — assumes `~/.cache/.bun/bin` and `~/.local/share/go/bin` exist.

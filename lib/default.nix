@@ -34,14 +34,11 @@ in {
       env = ./. + "/../fish/env.fish";
       ffmpeg = ./. + "/../fish/ffmpeg.fish";
       plugins = ./. + "/../fish/fish_plugins";
-      confDir = ./. + "/../fish/conf.d";
       fish_frozen_theme = ./. + "/../fish/conf.d/fish_frozen_theme.fish";
-      functionsDir = ./. + "/../fish/functions";
       restoreSecrets = ./. + "/../fish/functions/restore-secrets.fish";
       cleanSecrets = ./. + "/../fish/functions/clean-secrets.fish";
       shredSecrets = ./. + "/../fish/functions/shred-secrets.fish";
     };
-    nvimStarter = ./. + "/../nvim/nvchad-starter";
   };
 
   secretsFile = "$HOME/.local/share/secrets/fish.fish";
