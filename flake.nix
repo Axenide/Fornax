@@ -102,6 +102,7 @@
 
         home.file.".npmrc".text = ''
           prefix=${config.xdg.dataHome}/npm-global
+          global-prefix=${config.xdg.dataHome}/npm-global
         '';
 
         xdg.configFile = {
