@@ -40,7 +40,6 @@
       ...
     }: let
       termCfg = import ./lib {inherit lib;};
-      wrappers = import ./lib/wrappers.nix {inherit pkgs lib;};
 
       opentuiSkillSrc = pkgs.fetchFromGitHub {
         owner = "anomalyco";
@@ -58,8 +57,6 @@
         cp -rL ${opentuiSkillSrc}/packages/web/src/content $out/opencode/skills/opentui
         chmod -R u+w $out
       '';
-
-      opencodePkg = wrappers.mkOpencodeWrapper pkgs opencodeXdg;
 
       nvchadPkg = (nix4nvchad.packages.${pkgs.system}.default.override (termCfg.nvchadConfig pkgs // {
         starterRepo = self + "/nvim/nvchad-starter";
@@ -96,7 +93,7 @@
       };
 
       config = lib.mkIf config.programs.fornax.enable {
-        home.packages = termCfg.extraPackages pkgs ++ [bunPkg nvchadPkg opencodePkg];
+        home.packages = termCfg.extraPackages pkgs ++ [bunPkg nvchadPkg];
 
         programs.fish.enable = true;
 

@@ -14,7 +14,7 @@ Global agent rules (commit style, branch safety, comments policy, language) live
 
 - `flake.nix` — outputs. `devShells.default` exposes `termCfg.toolingPackages pkgs`. `homeManagerModules.default` (`flake.nix:48`) wires fish, tmux, NvChad, the opencode wrapper, the `xdg.configFile` symlinks, and the two activation hooks (`refreshTmux`, `syncOpencodeConfig`).
 - `lib/default.nix` — pure config: `configPaths`, `extraPackages`, `toolingPackages`, `tmuxPlugins`, `nvchadConfig`, `secretsFile`.
-- `lib/wrappers.nix` — only `mkOpencodeWrapper`. Other wrappers (`tmux`, `fish`, `*-secrets`, `btop`, `bundleTmuxPlugins`) were dropped with the bundle path.
+- `lib/wrappers.nix` — removed; the last wrapper it held (`mkOpencodeWrapper`) was for the dropped bundle path. Install `opencode-ai` via `npm i -g` (see `setupNpm` hook); fornax still ships the config + skills.
 - `fish/` — fish config files; `fish/functions/` holds the secrets helpers. `fish_plugins` only declares `jorgebucaran/fisher` (plugin manager, not actual plugins).
 - `tmux/tmux.conf` + `tmux/minimal.conf` — concatenated at build time by home-manager's `programs.tmux.extraConfig` (`flake.nix:110`).
 - `nvim/nvchad-starter/` — vendored NvChad v2.5 starter, locally customized. Theme: `chadwal`.
@@ -92,7 +92,7 @@ NvChad v2.5 (`nvim/nvchad-starter/init.lua:27`). Format with stylua per `nvim/nv
 Materialization:
 - The derivation `${opencodeXdg}/opencode/` (`flake.nix:43`) combines `opencode/opencode.json`, `opencode/AGENTS.md`, the local `skills/`, and the pinned opentui skill.
 - The `syncOpencodeConfig` hook overwrites `~/.config/opencode/` from that derivation on every switch.
-- The `opencode` binary (`lib/wrappers.nix`) is a `writeShellApplication` that runs `npx -y opencode-ai@latest` with `nodejs` + `mcp-nixos` on the runtime path. Installed at `~/.nix-profile/bin/opencode` via `home.packages`. When `$0` is in `/nix/store/...` it points `OPENCODE_CONFIG` straight at the store derivation; otherwise it points at the user-level copy managed by the hook.
+- The `opencode` binary itself is NOT shipped by fornax. Install `opencode-ai` via `npm i -g opencode-ai@latest` (the `setupNpm` hook makes `npm i -g` work under Nix); it then reads fornax-managed config from `~/.config/opencode/opencode.json` (the default location).
 
 ## Formatters & Linters
 
