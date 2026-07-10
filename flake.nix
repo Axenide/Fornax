@@ -114,6 +114,7 @@
 
         home.activation.syncOpencodeConfig = lib.hm.dag.entryAfter ["linkGeneration"] ''
           mkdir -p "$HOME/.config/opencode"
+          chmod -R u+w "$HOME/.config/opencode" 2>/dev/null || true
           rm -rf "$HOME/.config/opencode/opencode.json" "$HOME/.config/opencode/AGENTS.md" "$HOME/.config/opencode/skills"
           cp -rL ${opencodeXdg}/opencode/. "$HOME/.config/opencode/"
           chmod -R u+w "$HOME/.config/opencode"
