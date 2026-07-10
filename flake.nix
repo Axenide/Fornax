@@ -60,7 +60,6 @@
       '';
 
       opencodePkg = wrappers.mkOpencodeWrapper pkgs opencodeXdg;
-      npmPkg = wrappers.mkNpmWrapper pkgs;
 
       nvchadPkg = (nix4nvchad.packages.${pkgs.system}.default.override (termCfg.nvchadConfig pkgs // {
         starterRepo = self + "/nvim/nvchad-starter";
@@ -97,7 +96,7 @@
       };
 
       config = lib.mkIf config.programs.fornax.enable {
-        home.packages = termCfg.extraPackages pkgs ++ [bunPkg nvchadPkg opencodePkg npmPkg];
+        home.packages = termCfg.extraPackages pkgs ++ [bunPkg nvchadPkg opencodePkg];
 
         programs.fish.enable = true;
 
@@ -143,6 +142,15 @@
           rm -rf "$HOME/.config/opencode/opencode.json" "$HOME/.config/opencode/AGENTS.md" "$HOME/.config/opencode/skills"
           cp -rL ${opencodeXdg}/opencode/. "$HOME/.config/opencode/"
           chmod -R u+w "$HOME/.config/opencode"
+        '';
+
+        home.activation.setupNpm = lib.hm.dag.entryAfter ["linkGeneration"] ''
+          mkdir -p "$HOME/.cache/npm/global"
+          rm -f "$HOME/.npmrc"
+          cat > "$HOME/.npmrc" << EOF
+prefix=$HOME/.cache/npm/global
+global-prefix=$HOME/.cache/npm/global
+EOF
         '';
 
         home.activation.installNvChad = lib.hm.dag.entryAfter ["linkGeneration"] ''
