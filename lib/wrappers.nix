@@ -36,7 +36,9 @@ in {
         export NPM_CONFIG_GLOBAL_PREFIX="$HOME/.local/share/npm-global"
         exec ${pkgs.nodejs}/bin/npm "$@"
       '';
-    }).overrideAttrs (old: {
-      meta = (old.meta or {}) // { priority = 9999; };
+      meta = {
+        priority = 9999;
+        mainProgram = "npm";
+      };
     });
 }
