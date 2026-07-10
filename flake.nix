@@ -270,6 +270,14 @@
             dest = "$HOME/.config/opencode/skills";
           };
         };
+
+        home.activation.refreshTmux = config.lib.hm.dag.entryAfter ["linkGeneration"] ''
+          if ${pkgs.tmux}/bin/tmux info >/dev/null 2>&1; then
+            ${pkgs.tmux}/bin/tmux set-option -g default-shell ${pkgs.fish}/bin/fish
+            ${pkgs.tmux}/bin/tmux setenv -g SHELL ${pkgs.fish}/bin/fish
+            ${pkgs.tmux}/bin/tmux source-file "$HOME/.config/tmux/tmux.conf" >/dev/null 2>&1 || true
+          fi
+        '';
       };
     };
   };
