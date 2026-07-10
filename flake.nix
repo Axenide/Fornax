@@ -84,15 +84,15 @@
 
         xdg.configFile = {
           "btop/btop.conf".source = termCfg.configPaths.btop;
-          "fish/config.fish".source = termCfg.configPaths.fish.config;
-          "fish/aliases.fish".source = termCfg.configPaths.fish.aliases;
-          "fish/env.fish".source = termCfg.configPaths.fish.env;
-          "fish/ffmpeg.fish".source = termCfg.configPaths.fish.ffmpeg;
-          "fish/fish_plugins".source = termCfg.configPaths.fish.plugins;
-          "fish/functions/restore-secrets.fish".source = termCfg.configPaths.fish.restoreSecrets;
-          "fish/functions/clean-secrets.fish".source = termCfg.configPaths.fish.cleanSecrets;
-          "fish/functions/shred-secrets.fish".source = termCfg.configPaths.fish.shredSecrets;
-          "fish/conf.d/fish_frozen_theme.fish".source = termCfg.configPaths.fish.fish_frozen_theme;
+          "fish/config.fish".source = lib.mkForce termCfg.configPaths.fish.config;
+          "fish/aliases.fish".source = lib.mkForce termCfg.configPaths.fish.aliases;
+          "fish/env.fish".source = lib.mkForce termCfg.configPaths.fish.env;
+          "fish/ffmpeg.fish".source = lib.mkForce termCfg.configPaths.fish.ffmpeg;
+          "fish/fish_plugins".source = lib.mkForce termCfg.configPaths.fish.plugins;
+          "fish/functions/restore-secrets.fish".source = lib.mkForce termCfg.configPaths.fish.restoreSecrets;
+          "fish/functions/clean-secrets.fish".source = lib.mkForce termCfg.configPaths.fish.cleanSecrets;
+          "fish/functions/shred-secrets.fish".source = lib.mkForce termCfg.configPaths.fish.shredSecrets;
+          "fish/conf.d/fish_frozen_theme.fish".source = lib.mkForce termCfg.configPaths.fish.fish_frozen_theme;
         };
 
         programs.tmux = {
