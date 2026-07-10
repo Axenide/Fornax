@@ -84,10 +84,9 @@
         version = bunVersion;
         src = bunSrc;
         nativeBuildInputs = [pkgs.unzip];
-        sourceRoot = ".";
         installPhase = ''
           mkdir -p $out/bin
-          install -m755 bun $out/bin/bun
+          install -m755 */bun $out/bin/bun
         '';
       };
     in {
