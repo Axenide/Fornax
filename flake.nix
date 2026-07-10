@@ -60,30 +60,19 @@
       '';
 
       opencodePkg = wrappers.mkOpencodeWrapper pkgs opencodeXdg;
-    in {
-      imports = [
-        (import "${nix4nvchad}/nix/module.nix" {
-          starterRepo = self + "/nvim/nvchad-starter";
-        })
-      ];
 
+      nvchadPkg = (nix4nvchad.packages.${pkgs.system}.default.override (termCfg.nvchadConfig pkgs // {
+        starterRepo = self + "/nvim/nvchad-starter";
+      })).overrideAttrs (_: {
+        dontWrapQtApps = true;
+      });
+    in {
       options.programs.fornax = {
         enable = lib.mkEnableOption "Fornax: Axenide's terminal environment";
       };
 
       config = lib.mkIf config.programs.fornax.enable {
-        programs.nvchad =
-          (termCfg.nvchadConfig pkgs)
-          // {
-            enable = true;
-            package = (nix4nvchad.packages.${pkgs.system}.default.override (termCfg.nvchadConfig pkgs // {
-              starterRepo = self + "/nvim/nvchad-starter";
-            })).overrideAttrs (_: {
-              dontWrapQtApps = true;
-            });
-          };
-
-        home.packages = termCfg.extraPackages pkgs ++ [opencodePkg];
+        home.packages = termCfg.extraPackages pkgs ++ [nvchadPkg opencodePkg];
 
         programs.fish.enable = true;
 
@@ -128,6 +117,16 @@
           rm -rf "$HOME/.config/opencode/opencode.json" "$HOME/.config/opencode/AGENTS.md" "$HOME/.config/opencode/skills"
           cp -rL ${opencodeXdg}/opencode/. "$HOME/.config/opencode/"
           chmod -R u+w "$HOME/.config/opencode"
+        '';
+
+        home.activation.installNvChad = lib.hm.dag.entryAfter ["linkGeneration"] ''
+          if [ -d "$HOME/.config/nvim" ] && [ ! -L "$HOME/.config/nvim" ]; then
+            mv "$HOME/.config/nvim" "$HOME/.config/nvim_$(date +%Y_%m_%d_%H_%M_%S).bak"
+          fi
+          mkdir -p "$HOME/.config/nvim"
+          cp -rL ${nvchadPkg}/config/. "$HOME/.config/nvim/"
+          find "$HOME/.config/nvim" -type d -exec chmod 755 {} \;
+          find "$HOME/.config/nvim" -type f -exec chmod 664 {} \;
         '';
       };
     };
