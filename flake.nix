@@ -155,13 +155,20 @@ EOF
 
         home.activation.setupFishEnv = lib.hm.dag.entryAfter ["linkGeneration"] ''
           # env.fish is the single source of truth for runtime fish env.
-          # Push a no-op source command to every active tmux pane so they
-          # pick up whatever changes this switch made to env.fish
-          # (NPM_CONFIG_PREFIX, BUN_INSTALL, fish_add_path entries, etc.).
+          # Push a no-op source command to every active tmux pane whose
+          # foreground command is an interactive shell — panes running
+          # opencode, nvim, lazygit, etc. are left alone so we don't
+          # pollute their input buffer.
           if ${pkgs.tmux}/bin/tmux info >/dev/null 2>&1; then
-            ${pkgs.tmux}/bin/tmux list-panes -a -F '#{session_name}:#{window_index}.#{pane_index}' 2>/dev/null \
-              | while IFS= read -r pane; do
-                ${pkgs.tmux}/bin/tmux send-keys -t "$pane" 'source ~/.config/fish/env.fish; hash -r' 2>/dev/null || true
+            ${pkgs.tmux}/bin/tmux list-panes -a -F '#{session_name}:#{window_index}.#{pane_index} #{pane_current_command}' 2>/dev/null \
+              | while IFS= read -r line; do
+                target="''${line%% *}"
+                cmd="''${line##* }"
+                case "$cmd" in
+                  fish|bash|zsh|sh|dash)
+                    ${pkgs.tmux}/bin/tmux send-keys -t "$target" 'source ~/.config/fish/env.fish; hash -r' 2>/dev/null || true
+                    ;;
+                esac
               done
           fi
         '';
