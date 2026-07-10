@@ -110,7 +110,7 @@
           plugins = termCfg.tmuxPlugins pkgs;
         };
 
-        home.activation.refreshTmux = config.lib.hm.dag.entryAfter ["linkGeneration"] ''
+        home.activation.refreshTmux = lib.hm.dag.entryAfter ["linkGeneration"] ''
           if ${pkgs.tmux}/bin/tmux info >/dev/null 2>&1; then
             ${pkgs.tmux}/bin/tmux set-option -g default-shell ${pkgs.fish}/bin/fish
             ${pkgs.tmux}/bin/tmux setenv -g SHELL ${pkgs.fish}/bin/fish
@@ -118,7 +118,7 @@
           fi
         '';
 
-        home.activation.syncOpencodeConfig = config.lib.hm.dag.entryAfter ["linkGeneration"] ''
+        home.activation.syncOpencodeConfig = lib.hm.dag.entryAfter ["linkGeneration"] ''
           mkdir -p "$HOME/.config/opencode"
           rm -rf "$HOME/.config/opencode/opencode.json" "$HOME/.config/opencode/AGENTS.md" "$HOME/.config/opencode/skills"
           cp -rL ${opencodeXdg}/opencode/. "$HOME/.config/opencode/"
