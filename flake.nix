@@ -100,6 +100,10 @@
 
         programs.fish.enable = true;
 
+        home.file.".npmrc".text = ''
+          prefix=${config.xdg.dataHome}/npm-global
+        '';
+
         xdg.configFile = {
           "btop/btop.conf".source = termCfg.configPaths.btop;
           "fish/config.fish".source = lib.mkForce termCfg.configPaths.fish.config;
