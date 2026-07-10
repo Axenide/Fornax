@@ -1,16 +1,11 @@
 {
-  description = "Fornax: Axenide's alchemical furnace.";
+  description = "Fornax: Axenide's terminal environment, installed via home-manager.";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
 
     nix4nvchad = {
       url = "github:nix-community/nix4nvchad";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    agent-skills-nix = {
-      url = "github:Kyure-A/agent-skills-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -27,36 +22,26 @@
     ];
     forAllSystems = nixpkgs.lib.genAttrs systems;
   in {
-    packages = forAllSystems (system: let
+    devShells = forAllSystems (system: let
       pkgs = import nixpkgs {inherit system;};
       lib = pkgs.lib;
       termCfg = import ./lib {inherit lib;};
+    in {
+      default = pkgs.mkShell {
+        packages = termCfg.toolingPackages pkgs;
+      };
+    });
+
+    homeManagerModules.default = {
+      pkgs,
+      lib,
+      config,
+      nix4nvchad,
+      ...
+    }: let
+      termCfg = import ./lib {inherit lib;};
       wrappers = import ./lib/wrappers.nix {inherit pkgs lib;};
 
-      nvchadPkg = (nix4nvchad.packages.${system}.default.override (termCfg.nvchadConfig pkgs // {
-        starterRepo = self + "/nvim/nvchad-starter";
-      })).overrideAttrs (_: {
-        dontWrapQtApps = true;
-      });
-
-      tmuxPkg = wrappers.mkTmuxWrapper pkgs;
-      fishPkg = wrappers.mkFishWrapper pkgs;
-      nvimPkg = pkgs.symlinkJoin {
-        name = "axenide-nvim";
-        paths = [nvchadPkg];
-      };
-      restoreSecretsPkg = wrappers.mkRestoreSecretsWrapper pkgs {
-        restore-secrets = termCfg.configPaths.fish.restoreSecrets;
-        fishWrapper = fishPkg;
-      };
-      cleanSecretsPkg = wrappers.mkCleanSecretsWrapper pkgs {
-        clean-secrets = termCfg.configPaths.fish.cleanSecrets;
-        fishWrapper = fishPkg;
-      };
-      shredSecretsPkg = wrappers.mkShredSecretsWrapper pkgs {
-        shred-secrets = termCfg.configPaths.fish.shredSecrets;
-        fishWrapper = fishPkg;
-      };
       opentuiSkillSrc = pkgs.fetchFromGitHub {
         owner = "anomalyco";
         repo = "opentui";
@@ -75,130 +60,6 @@
       '';
 
       opencodePkg = wrappers.mkOpencodeWrapper pkgs opencodeXdg;
-
-      fornaxPkg = pkgs.writeShellScriptBin "fornax" ''
-        # Attach to an existing fornax session, or start a new one.
-        # The bundle's PATH (set up by `nix run` / `nix develop`) is
-        # inherited by the shell inside tmux, so fish, nvim, lazygit,
-        # yazi, bw, etc. are all available without a profile install.
-        if ${tmuxPkg}/bin/tmux has-session -t fornax 2>/dev/null; then
-          exec ${tmuxPkg}/bin/tmux attach-session -t fornax
-        else
-          exec ${tmuxPkg}/bin/tmux new-session -A -s fornax -c "$PWD"
-        fi
-      '';
-
-      passthrough = {
-        starship = pkgs.starship;
-        zoxide = pkgs.zoxide;
-        fastfetch = pkgs.fastfetch;
-        ffmpeg = pkgs.ffmpeg;
-        lazygit = pkgs.lazygit;
-        lazysql = pkgs.lazysql;
-        cava = pkgs.cava;
-        bw = pkgs.bitwarden-cli;
-        yazi = pkgs.yazi;
-        git = pkgs.git;
-        gh = pkgs.gh;
-        btop = wrappers.mkBtopWrapper pkgs;
-        opencode = opencodePkg;
-      };
-
-      defaultBundle = pkgs.symlinkJoin {
-        name = "fornax";
-        paths =
-          [
-            tmuxPkg
-            fishPkg
-            nvimPkg
-            restoreSecretsPkg
-            cleanSecretsPkg
-            shredSecretsPkg
-            fornaxPkg
-          ]
-          ++ builtins.attrValues passthrough
-          ++ (termCfg.toolingPackages pkgs);
-      };
-    in
-      {
-        default = defaultBundle;
-        fornax = fornaxPkg;
-        tmux = tmuxPkg;
-        fish = fishPkg;
-        nvim = nvimPkg;
-        nvchad = nvchadPkg;
-        restore-secrets = restoreSecretsPkg;
-        clean-secrets = cleanSecretsPkg;
-        shred-secrets = shredSecretsPkg;
-      }
-      // builtins.mapAttrs (_: p: p) {
-        inherit (passthrough) starship zoxide fastfetch ffmpeg lazygit lazysql cava bw yazi git gh btop opencode;
-      } // {
-        opentui-skill = opentuiSkillSrc;
-      });
-
-    apps = forAllSystems (system: let
-      pkgs = import nixpkgs {inherit system;};
-      lib = pkgs.lib;
-      wrappers = import ./lib/wrappers.nix {inherit pkgs lib;};
-      fishPkg = wrappers.mkFishWrapper pkgs;
-    in {
-      default = {
-        type = "app";
-        program = "${self.packages.${system}.fornax}/bin/fornax";
-      };
-      fornax = {
-        type = "app";
-        program = "${self.packages.${system}.fornax}/bin/fornax";
-      };
-      tmux = {
-        type = "app";
-        program = "${wrappers.mkTmuxWrapper pkgs}/bin/tmux";
-      };
-      fish = {
-        type = "app";
-        program = "${fishPkg}/bin/fish";
-      };
-      nvim = {
-        type = "app";
-        program = "${self.packages.${system}.nvim}/bin/nvim";
-      };
-      opencode = {
-        type = "app";
-        program = "${self.packages.${system}.opencode}/bin/opencode";
-      };
-      restore-secrets = {
-        type = "app";
-        program = "${self.packages.${system}.restore-secrets}/bin/restore-secrets";
-      };
-      clean-secrets = {
-        type = "app";
-        program = "${self.packages.${system}.clean-secrets}/bin/clean-secrets";
-      };
-      shred-secrets = {
-        type = "app";
-        program = "${self.packages.${system}.shred-secrets}/bin/shred-secrets";
-      };
-    });
-
-    devShells = forAllSystems (system: let
-      pkgs = import nixpkgs {inherit system;};
-    in {
-      default = pkgs.mkShell {
-        packages = [self.packages.${system}.default];
-      };
-    });
-
-    homeManagerModules.default = {
-      pkgs,
-      lib,
-      config,
-      nix4nvchad,
-      agent-skills-nix,
-      opentuiSkillPath,
-      ...
-    }: let
-      termCfg = import ./lib {inherit lib;};
     in {
       options.programs.fornax = {
         enable = lib.mkEnableOption "Fornax: Axenide's terminal environment";
@@ -209,7 +70,6 @@
           (import "${nix4nvchad}/nix/module.nix" {
             starterRepo = self + "/nvim/nvchad-starter";
           })
-          agent-skills-nix.homeManagerModules.default
         ];
 
         programs.nvchad =
@@ -218,7 +78,7 @@
             enable = true;
           };
 
-        home.packages = termCfg.extraPackages pkgs;
+        home.packages = termCfg.extraPackages pkgs ++ [opencodePkg];
 
         programs.fish.enable = true;
 
@@ -251,32 +111,19 @@
           plugins = termCfg.tmuxPlugins pkgs;
         };
 
-        agent-skills = {
-          sources.opentui = {
-            path = opentuiSkillPath;
-            idPrefix = "opentui";
-          };
-          sources.local = {
-            path = ./skills;
-          };
-          skills.enable = [
-            "opentui"
-            "bubbletea-go-tui-builder"
-            "rust-gtk4-expert"
-          ];
-          targets.opencode = {
-            enable = true;
-            structure = "copy-tree";
-            dest = "$HOME/.config/opencode/skills";
-          };
-        };
-
         home.activation.refreshTmux = config.lib.hm.dag.entryAfter ["linkGeneration"] ''
           if ${pkgs.tmux}/bin/tmux info >/dev/null 2>&1; then
             ${pkgs.tmux}/bin/tmux set-option -g default-shell ${pkgs.fish}/bin/fish
             ${pkgs.tmux}/bin/tmux setenv -g SHELL ${pkgs.fish}/bin/fish
             ${pkgs.tmux}/bin/tmux source-file "$HOME/.config/tmux/tmux.conf" >/dev/null 2>&1 || true
           fi
+        '';
+
+        home.activation.syncOpencodeConfig = config.lib.hm.dag.entryAfter ["linkGeneration"] ''
+          mkdir -p "$HOME/.config/opencode"
+          rm -rf "$HOME/.config/opencode/opencode.json" "$HOME/.config/opencode/AGENTS.md" "$HOME/.config/opencode/skills"
+          cp -rL ${opencodeXdg}/opencode/. "$HOME/.config/opencode/"
+          chmod -R u+w "$HOME/.config/opencode"
         '';
       };
     };

@@ -1,18 +1,5 @@
 {lib}: let
   inherit (builtins) readFile;
-    fishXdgRoot = pkgs: pkgs.runCommand "axenide-fish-xdg" {} ''
-    mkdir -p $out/fish/functions
-    mkdir -p $out/fish/conf.d
-    ln -s ${./../fish/config.fish} $out/fish/config.fish
-    ln -s ${./../fish/aliases.fish} $out/fish/aliases.fish
-    ln -s ${./../fish/env.fish} $out/fish/env.fish
-    ln -s ${./../fish/ffmpeg.fish} $out/fish/ffmpeg.fish
-    ln -s ${./../fish/fish_plugins} $out/fish/fish_plugins
-    ln -s ${./../fish/functions/restore-secrets.fish} $out/fish/functions/restore-secrets.fish
-    ln -s ${./../fish/functions/clean-secrets.fish} $out/fish/functions/clean-secrets.fish
-    ln -s ${./../fish/functions/shred-secrets.fish} $out/fish/functions/shred-secrets.fish
-    ln -s ${./../fish/conf.d/fish_frozen_theme.fish} $out/fish/conf.d/fish_frozen_theme.fish
-  '';
 
   toolingPackages = pkgs: with pkgs; [
     alejandra
@@ -58,26 +45,6 @@ in {
   };
 
   secretsFile = "$HOME/.local/share/secrets/fish.fish";
-
-  mergedTmuxConf = pkgs: pkgs.runCommand "axenide-tmux.conf" {} ''
-    cat ${./../tmux/tmux.conf} ${./../tmux/minimal.conf} > $out
-  '';
-
-  inherit fishXdgRoot;
-
-  fishLinkToHome = pkgs:
-    pkgs.writeShellScript "axenide-fish-link-home" ''
-      set -e
-      export HOME=''${HOME:-$HOME}
-      mkdir -p "$HOME/.config/fish/functions"
-      ln -sfT "${fishXdgRoot pkgs}/fish/config.fish"     "$HOME/.config/fish/config.fish"
-      ln -sfT "${fishXdgRoot pkgs}/fish/aliases.fish"    "$HOME/.config/fish/aliases.fish"
-      ln -sfT "${fishXdgRoot pkgs}/fish/env.fish"        "$HOME/.config/fish/env.fish"
-      ln -sfT "${fishXdgRoot pkgs}/fish/ffmpeg.fish"     "$HOME/.config/fish/ffmpeg.fish"
-      ln -sfT "${fishXdgRoot pkgs}/fish/fish_plugins"    "$HOME/.config/fish/fish_plugins"
-      ln -sfT "${fishXdgRoot pkgs}/fish/functions/restore-secrets.fish" \
-              "$HOME/.config/fish/functions/restore-secrets.fish"
-    '';
 
   extraPackages = pkgs:
     [
