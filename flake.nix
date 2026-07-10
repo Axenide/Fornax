@@ -86,7 +86,8 @@
         nativeBuildInputs = [pkgs.unzip];
         installPhase = ''
           mkdir -p $out/bin
-          install -m755 */bun $out/bin/bun
+          bunPath=$(find . -type f -name bun | head -n1)
+          install -m755 "$bunPath" $out/bin/bun
         '';
       };
     in {
