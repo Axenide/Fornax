@@ -153,6 +153,18 @@ global-prefix=$HOME/.cache/npm/global
 EOF
         '';
 
+        home.activation.setupFishEnv = lib.hm.dag.entryAfter ["linkGeneration"] ''
+          ${pkgs.fish}/bin/fish -c 'set -Ux NPM_CONFIG_PREFIX $HOME/.cache/npm/global'
+          ${pkgs.fish}/bin/fish -c 'set -Ux BUN_INSTALL $HOME/.cache/bun'
+          ${pkgs.fish}/bin/fish -c 'set -Ux fish_user_paths $HOME/.cache/npm/global/bin $HOME/.cache/bun/bin $HOME/.nix-profile/bin'
+          if ${pkgs.tmux}/bin/tmux info >/dev/null 2>&1; then
+            ${pkgs.tmux}/bin/tmux list-panes -a -F '#{session_name}:#{window_index}.#{pane_index}' 2>/dev/null \
+              | while IFS= read -r pane; do
+                ${pkgs.tmux}/bin/tmux send-keys -t "$pane" 'source ~/.config/fish/env.fish; hash -r' 2>/dev/null || true
+              done
+          fi
+        '';
+
         home.activation.installNvChad = lib.hm.dag.entryAfter ["linkGeneration"] ''
           if [ -d "$HOME/.config/nvim" ] && [ ! -L "$HOME/.config/nvim" ]; then
             mv "$HOME/.config/nvim" "$HOME/.config/nvim_$(date +%Y_%m_%d_%H_%M_%S).bak"
