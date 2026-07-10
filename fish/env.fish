@@ -1,6 +1,8 @@
 set -xg TERMINAL kitty
 set -xg EDITOR nvim
 fish_add_path -gp $HOME/.nix-profile/bin
+set -gx NPM_CONFIG_PREFIX $HOME/.local/share/npm-global
+fish_add_path -gp $HOME/.local/share/npm-global/bin
 xdg-user-dirs-update
 
 set -xg XDG_DESKTOP_DIR (xdg-user-dir DESKTOP)
