@@ -101,7 +101,6 @@
           terminal = "tmux-256color";
           mouse = true;
           baseIndex = 1;
-          paneBaseIndex = 1;
           renumberWindows = true;
           keyMode = "vi";
           extraConfig =
