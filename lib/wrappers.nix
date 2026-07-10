@@ -28,17 +28,17 @@ in {
     };
 
   mkNpmWrapper = pkgs:
-    (pkgs.writeShellApplication {
-      name = "npm";
-      runtimeInputs = [pkgs.nodejs];
-      text = ''
-        export NPM_CONFIG_PREFIX="$HOME/.local/share/npm-global"
-        export NPM_CONFIG_GLOBAL_PREFIX="$HOME/.local/share/npm-global"
-        exec ${pkgs.nodejs}/bin/npm "$@"
-      '';
-      meta = {
-        priority = 9999;
-        mainProgram = "npm";
-      };
-    });
+    pkgs.runCommand "npm" {
+      meta.priority = 9999;
+      meta.mainProgram = "npm";
+    } ''
+      mkdir -p $out/bin
+      cat > $out/bin/npm << 'WRAPPER'
+      #!/usr/bin/env bash
+      export NPM_CONFIG_PREFIX="$HOME/.local/share/npm-global"
+      export NPM_CONFIG_GLOBAL_PREFIX="$HOME/.local/share/npm-global"
+      exec ${pkgs.nodejs}/bin/npm "$@"
+      WRAPPER
+      chmod +x $out/bin/npm
+    '';
 }
