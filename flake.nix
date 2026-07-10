@@ -101,12 +101,12 @@
           terminal = "tmux-256color";
           mouse = true;
           baseIndex = 1;
-          renumberWindows = true;
           keyMode = "vi";
           extraConfig =
             builtins.readFile termCfg.configPaths.tmux
             + "\n"
-            + builtins.readFile termCfg.configPaths.tmuxMinimal;
+            + builtins.readFile termCfg.configPaths.tmuxMinimal
+            + "\nset-option -g renumber-windows on\n";
           plugins = termCfg.tmuxPlugins pkgs;
         };
 
