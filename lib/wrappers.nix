@@ -28,7 +28,7 @@ in {
     };
 
   mkNpmWrapper = pkgs:
-    pkgs.writeShellApplication {
+    (pkgs.writeShellApplication {
       name = "npm";
       runtimeInputs = [pkgs.nodejs];
       text = ''
@@ -36,5 +36,7 @@ in {
         export NPM_CONFIG_GLOBAL_PREFIX="$HOME/.local/share/npm-global"
         exec ${pkgs.nodejs}/bin/npm "$@"
       '';
-    };
+    }).overrideAttrs (old: {
+      meta = (old.meta or {}) // { priority = 9999; };
+    });
 }
