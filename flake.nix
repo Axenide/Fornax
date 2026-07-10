@@ -153,20 +153,6 @@ global-prefix=$HOME/.cache/npm/global
 EOF
         '';
 
-        home.activation.setupFishEnv = lib.hm.dag.entryAfter ["linkGeneration"] ''
-          # env.fish is the single source of truth for runtime fish env.
-          # xdg.configFile re-symlinks it on every switch, so any new
-          # fish session (new terminal, new tmux pane/window) sources
-          # the updated env.fish via config.fish automatically.
-          # Existing panes keep their old env — if the user wants the
-          # update immediately, they re-source manually:
-          #   source ~/.config/fish/env.fish; hash -r
-          # We deliberately do NOT use tmux send-keys here, because any
-          # unconditional or even filtered injection risks polluting
-          # non-shell TUIs (opencode, nvim, lazygit, ...) that may be
-          # attached to a tmux pane.
-        '';
-
         home.activation.installNvChad = lib.hm.dag.entryAfter ["linkGeneration"] ''
           if [ -d "$HOME/.config/nvim" ] && [ ! -L "$HOME/.config/nvim" ]; then
             mv "$HOME/.config/nvim" "$HOME/.config/nvim_$(date +%Y_%m_%d_%H_%M_%S).bak"
