@@ -76,6 +76,11 @@
           (termCfg.nvchadConfig pkgs)
           // {
             enable = true;
+            package = (nix4nvchad.packages.${pkgs.system}.default.override (termCfg.nvchadConfig pkgs // {
+              starterRepo = self + "/nvim/nvchad-starter";
+            })).overrideAttrs (_: {
+              dontWrapQtApps = true;
+            });
           };
 
         home.packages = termCfg.extraPackages pkgs ++ [opencodePkg];
