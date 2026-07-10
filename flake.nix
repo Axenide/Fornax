@@ -61,17 +61,17 @@
 
       opencodePkg = wrappers.mkOpencodeWrapper pkgs opencodeXdg;
     in {
+      imports = lib.mkIf config.programs.fornax.enable [
+        (import "${nix4nvchad}/nix/module.nix" {
+          starterRepo = self + "/nvim/nvchad-starter";
+        })
+      ];
+
       options.programs.fornax = {
         enable = lib.mkEnableOption "Fornax: Axenide's terminal environment";
       };
 
       config = lib.mkIf config.programs.fornax.enable {
-        imports = [
-          (import "${nix4nvchad}/nix/module.nix" {
-            starterRepo = self + "/nvim/nvchad-starter";
-          })
-        ];
-
         programs.nvchad =
           (termCfg.nvchadConfig pkgs)
           // {
