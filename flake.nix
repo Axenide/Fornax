@@ -21,7 +21,22 @@
       "aarch64-linux"
     ];
     forAllSystems = nixpkgs.lib.genAttrs systems;
+
+    nvchadFor = system: let
+      pkgs = import nixpkgs {inherit system;};
+      termCfg = import ./lib {lib = pkgs.lib;};
+    in
+      (nix4nvchad.packages.${system}.default.override (termCfg.nvchadConfig pkgs // {
+        starterRepo = self + "/nvim/nvchad-starter";
+      })).overrideAttrs (_: {
+        dontWrapQtApps = true;
+      });
   in {
+    packages = forAllSystems (system: {
+      nvchad = nvchadFor system;
+      default = nvchadFor system;
+    });
+
     devShells = forAllSystems (system: let
       pkgs = import nixpkgs {inherit system;};
       lib = pkgs.lib;
@@ -36,7 +51,6 @@
       pkgs,
       lib,
       config,
-      nix4nvchad,
       ...
     }: let
       termCfg = import ./lib {inherit lib;};
@@ -58,11 +72,7 @@
         chmod -R u+w $out
       '';
 
-      nvchadPkg = (nix4nvchad.packages.${pkgs.system}.default.override (termCfg.nvchadConfig pkgs // {
-        starterRepo = self + "/nvim/nvchad-starter";
-      })).overrideAttrs (_: {
-        dontWrapQtApps = true;
-      });
+      nvchadPkg = self.packages.${pkgs.system}.nvchad;
 
       bunVersion = "1.3.14";
       bunSrcs = {

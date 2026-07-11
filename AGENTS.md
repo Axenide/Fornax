@@ -1,12 +1,12 @@
 # AGENTS.md
 
-Fornax is a personal Nix flake that installs a terminal dev environment (tmux, fish, nvim/NvChad, lazygit, lazysql, yazi, starship, zoxide, fastfetch, ffmpeg, cava, bitwarden-cli, btop, git, plus the opencode CLI with bundled config and skills) **exclusively via the `homeManagerModules.default` module**. There are no `packages` or `apps` outputs — those were dropped; the wrapper-based bundle path was unnecessary. Targets `x86_64-linux` and `aarch64-linux` only.
+Fornax is a personal Nix flake that installs a terminal dev environment (tmux, fish, nvim/NvChad, lazygit, lazysql, yazi, starship, zoxide, fastfetch, ffmpeg, cava, bitwarden-cli, btop, git, plus the opencode CLI with bundled config and skills). Install is via the `homeManagerModules.default` module — there is no `nix run` or `nix profile` path; `packages.<system>.nvchad` is exposed as a convenience for power users. There is no `apps` output. Targets `x86_64-linux` and `aarch64-linux` only.
 
 Global agent rules (commit style, branch safety, comments policy, language) live in `opencode/AGENTS.md` and are inherited automatically through `opencode/opencode.json` (`"instructions": ["./AGENTS.md"]`). Do not duplicate them here.
 
 ## Build & Run
 
-- `nix flake show` — list outputs (only `homeManagerModules` and `devShells`).
+- `nix flake show` — list outputs (`packages`, `homeManagerModules`, `devShells`).
 - `nix develop` — dev shell with formatters/linters (stylua, alejandra, shfmt, black, pyright, gopls, nixd, …). Use this when editing the flake itself.
 - End-user install: home-manager only. Add fornax to your flake inputs and import `fornax.homeManagerModules.default`, then set `programs.fornax.enable = true`.
 
@@ -26,7 +26,15 @@ Global agent rules (commit style, branch safety, comments policy, language) live
 `flake.nix:4` declares two:
 
 - `nixpkgs` (`nixpkgs-unstable`) — package source.
-- `nix4nvchad` (`github:nix-community/nix4nvchad`) — used by the home-manager module to materialize the NvChad derivation.
+- `nix4nvchad` (`github:nix-community/nix4nvchad`) — used internally to build `packages.<system>.nvchad`. Consumers do not need to declare it.
+
+## Flake Outputs
+
+Three outputs, all system-conditional on `["x86_64-linux" "aarch64-linux"]`:
+
+- `packages.<system>.nvchad` (default) — pre-built NvChad derivation (`nix4nvchad.packages.${system}.default` overridden with fornax's starter repo + `dontWrapQtApps`). Consumers can install it standalone, but for the full configuration the home-manager module is the recommended entrypoint.
+- `homeManagerModules.default` — wires fish, tmux, NvChad, the `xdg.configFile` symlinks, and the four activation hooks (`refreshTmux`, `syncOpencodeConfig`, `setupNpm`, `installNvChad`). The module pulls `nvchad` from `self.packages.<pkgs.system>.nvchad` rather than taking `nix4nvchad` as an input, so consumers don't need to declare `nix4nvchad`.
+- `devShells.default` — stylua, alejandra, shfmt, black, pyright, gopls, nixd, … exposed via `termCfg.toolingPackages pkgs`.
 
 The opentui skill is pinned internally at `flake.nix:44` via `fetchFromGitHub` and used by the module's `opencodeXdg`. Bump `rev` and `hash` together when updating.
 
