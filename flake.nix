@@ -109,7 +109,7 @@
       };
 
       config = lib.mkIf config.programs.fornax.enable {
-        home.packages = termCfg.extraPackages pkgs txm ++ [bunPkg nvchadPkg];
+        home.packages = termCfg.extraPackages pkgs ++ [bunPkg nvchadPkg];
 
         programs.fish.enable = true;
 
