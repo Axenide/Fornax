@@ -193,7 +193,7 @@ return {
   {
     "rv178/txm.nvim",
     cmd = { "TxmRender", "TxmClear", "TxmToggle" },
-    ft = "tex",
+    ft = { "tex", "markdown", "quarto" },
     opts = {},
   },
 
