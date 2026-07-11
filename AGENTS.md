@@ -116,6 +116,19 @@ There is no CI, no test suite, and no pre-commit hook. The only correctness loop
 - After Lua edits, run `stylua --check <changed>`.
 - After fish/tmux config edits, do a `home-manager switch` and visually smoke-test (the `refreshTmux` hook will keep your panes alive).
 
+## Updating the Consumer Lock
+
+When working in this repo, the `installNvChad` hook copies `${nvchadPkg}/config/.` from a freshly built `nvchadPkg` derivation. That derivation's content is determined by `self + "/nvim/nvchad-starter"` and therefore by the **git HEAD of this repo at build time** in the consumer flake.
+
+If the consumer pins fornax via `flake.lock` (typical: `github:Axenide/Fornax`), pushing a new commit here is **not** enough — the consumer's lock still points at the previous revision, so `home-manager switch` will keep building from the old `nvchad-starter` (and silently reuse the cached store path). After pushing a commit to this repo, in the consumer config:
+
+```
+nix flake update fornax    # bumps the rev in flake.lock
+home-manager switch        # rebuilds nvchadPkg with the new starter
+```
+
+Symptom of skipping this: `~/.config/nvim/` after `home-manager switch` looks like the previous switch's content even though you just changed files in this repo.
+
 ## Known Non-portable Bits
 
 These are user-specific and will fail on a fresh machine. Do not "fix" them for portability unless asked.
