@@ -16,7 +16,7 @@ Global agent rules (commit style, branch safety, comments policy, language) live
 - `lib/default.nix` — pure config: `configPaths`, `extraPackages`, `toolingPackages`, `tmuxPlugins`, `nvchadConfig`, `secretsFile`. No wrapper module: binaries are exposed as-is.
 - `fish/` — fish config files; `fish/functions/` holds the secrets helpers. `fish_plugins` only declares `jorgebucaran/fisher` (the plugin manager; no plugins installed by fornax).
 - `tmux/tmux.conf` + `tmux/minimal.conf` — concatenated at build time by home-manager's `programs.tmux.extraConfig` (`flake.nix:120`).
-- `nvim/nvchad-starter/` — vendored NvChad v2.5 starter, locally customized. Theme: `chadwal`.
+- `nvim/nvchad-starter/` — vendored NvChad v2.5 starter, locally customized. Theme: `wallsync` (set in `lua/chadrc.lua:5`).
 - `opencode/` — OpenCode CLI config bundle (config, global rules, own `.gitignore` for `node_modules`, lockfiles, `antigravity-*`).
 - `skills/` — local OpenCode skills, copied into `opencodeXdg` (`flake.nix:51`) and materialized to `~/.config/opencode/skills/` on every switch by `syncOpencodeConfig`. Current entries: `bubbletea-go-tui-builder`, `rust-gtk4-expert`.
 - Root `.gitignore` only ignores `result` / `result-*` (Nix build symlinks). Don't add generated Nix store paths to commits.
@@ -77,7 +77,7 @@ All three are fish functions symlinked by home-manager (`flake.nix:107-109`) and
 
 ## Neovim
 
-NvChad v2.5 (`nvim/nvchad-starter/init.lua:27`). Format with stylua per `nvim/nvchad-starter/.stylua.toml`: column 120, 2-space indent, `Unix` line endings, double quotes preferred, `call_parentheses = "None"`. Theme: `chadwal` (`lua/chadrc.lua:5`).
+NvChad v2.5 (`nvim/nvchad-starter/init.lua:27`). Format with stylua per `nvim/nvchad-starter/.stylua.toml`: column 120, 2-space indent, `Unix` line endings, double quotes preferred, `call_parentheses = "None"`. Theme: `wallsync` (`lua/chadrc.lua:5`); the generated theme file is written by the WallSync plugin to `~/.local/share/nvim/lazy/base46/lua/base46/themes/wallsync.lua`.
 
 ## tmux
 
