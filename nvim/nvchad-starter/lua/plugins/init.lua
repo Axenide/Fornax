@@ -191,6 +191,13 @@ return {
   },
 
   {
+    "rv178/txm.nvim",
+    cmd = { "TxmRender", "TxmClear", "TxmToggle" },
+    ft = "tex",
+    opts = {},
+  },
+
+  {
     "nvim-treesitter/nvim-treesitter",
     branch = "main",
     build = function()

@@ -1,4 +1,4 @@
-{lib}: let
+{lib, txm ? null}: let
   inherit (builtins) readFile;
 
   toolingPackages = pkgs: with pkgs; [
@@ -63,7 +63,10 @@ in {
       pkgs.coreutils
       pkgs.mcp-nixos
     ]
-    ++ (toolingPackages pkgs);
+    ++ (toolingPackages pkgs)
+    ++ pkgs.lib.optionals (txm != null && (pkgs.stdenv.hostPlatform.isLinux || pkgs.stdenv.hostPlatform.isDarwin)) [
+      txm.packages.${pkgs.system}.default
+    ];
 
   tmuxPlugins = pkgs: with pkgs.tmuxPlugins; [
     sensible

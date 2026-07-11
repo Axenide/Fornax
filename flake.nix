@@ -8,12 +8,18 @@
       url = "github:nix-community/nix4nvchad";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    txm = {
+      url = "github:thatmagicalcat/txm";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = {
     self,
     nixpkgs,
     nix4nvchad,
+    txm,
     ...
   }: let
     systems = [
@@ -53,7 +59,7 @@
       config,
       ...
     }: let
-      termCfg = import ./lib {inherit lib;};
+      termCfg = import ./lib {inherit lib txm;};
 
       opentuiSkillSrc = pkgs.fetchFromGitHub {
         owner = "anomalyco";
@@ -103,7 +109,7 @@
       };
 
       config = lib.mkIf config.programs.fornax.enable {
-        home.packages = termCfg.extraPackages pkgs ++ [bunPkg nvchadPkg];
+        home.packages = termCfg.extraPackages pkgs txm ++ [bunPkg nvchadPkg];
 
         programs.fish.enable = true;
 
