@@ -214,7 +214,10 @@ return {
       },
     },
     config = function()
-      local utils = require "nabla.utils"
+      local ok, utils = pcall(require, "nabla.utils")
+      if not ok or not utils or not utils.get_all_mathzones then
+        return
+      end
       if utils._fornax_patched then
         return
       end
@@ -222,9 +225,9 @@ return {
       utils.get_all_mathzones = function(opts)
         if vim.bo.filetype == "markdown" then
           vim.bo.filetype = "latex"
-          local ok, result = pcall(orig, opts)
+          local ok2, result = pcall(orig, opts)
           vim.bo.filetype = "markdown"
-          if not ok then
+          if not ok2 then
             error(result)
           end
           return result
