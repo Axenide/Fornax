@@ -205,7 +205,34 @@ return {
         end,
         desc = "Nabla popup",
       },
+      {
+        "<leader>pt",
+        function()
+          require("nabla").toggle_virt()
+        end,
+        desc = "Nabla toggle virt",
+      },
     },
+    config = function()
+      local utils = require "nabla.utils"
+      if utils._fornax_patched then
+        return
+      end
+      local orig = utils.get_all_mathzones
+      utils.get_all_mathzones = function(opts)
+        if vim.bo.filetype == "markdown" then
+          vim.bo.filetype = "latex"
+          local ok, result = pcall(orig, opts)
+          vim.bo.filetype = "markdown"
+          if not ok then
+            error(result)
+          end
+          return result
+        end
+        return orig(opts)
+      end
+      utils._fornax_patched = true
+    end,
   },
 
   {
