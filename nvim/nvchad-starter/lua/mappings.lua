@@ -72,5 +72,6 @@ map("n", "<A-n>", function()
   require("neogen").generate()
 end, { desc = "Generate docstrings with Neogen" })
 
-map("v", "<leader>tx", "<Plug>(TxmPreview)", { desc = "Txm preview selection" })
-map({ "n", "v" }, "<leader>tt", ":TxmToggle<CR>", { desc = "Txm toggle preview" })
+map("n", "<leader>p", function()
+  require("nabla").popup()
+end, { desc = "Nabla popup" })

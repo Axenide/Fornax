@@ -76,29 +76,7 @@
     "root": {
       "inputs": {
         "nix4nvchad": "nix4nvchad",
-        "nixpkgs": "nixpkgs",
-        "txm": "txm"
-      }
-    },
-    "rust-overlay": {
-      "inputs": {
-        "nixpkgs": [
-          "txm",
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1783747106,
-        "narHash": "sha256-KlepQu/O5m11lAjcJ4ER5bc6bIzyX2UMPDARzMzQfIw=",
-        "owner": "oxalica",
-        "repo": "rust-overlay",
-        "rev": "e598b37857b895b81020a65a802ef55f5bbed72f",
-        "type": "github"
-      },
-      "original": {
-        "owner": "oxalica",
-        "repo": "rust-overlay",
-        "type": "github"
+        "nixpkgs": "nixpkgs"
       }
     },
     "systems": {
@@ -113,27 +91,6 @@
       "original": {
         "owner": "nix-systems",
         "repo": "default",
-        "type": "github"
-      }
-    },
-    "txm": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ],
-        "rust-overlay": "rust-overlay"
-      },
-      "locked": {
-        "lastModified": 1783797007,
-        "narHash": "sha256-Y5GliwoOIxgLMxfmeG2u7EozqRK55p1PSzDLWQu5c2E=",
-        "owner": "thatmagicalcat",
-        "repo": "txm",
-        "rev": "dbaecca1d57dc1a1f05802b88f66dfac1a100b76",
-        "type": "github"
-      },
-      "original": {
-        "owner": "thatmagicalcat",
-        "repo": "txm",
         "type": "github"
       }
     }

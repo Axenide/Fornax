@@ -191,9 +191,17 @@ return {
   },
 
   {
-    "rv178/txm.nvim",
-    cmd = { "TxmRender", "TxmClear", "TxmToggle" },
+    "jbyuki/nabla.nvim",
     ft = { "tex", "markdown", "quarto" },
+    keys = {
+      {
+        "<leader>p",
+        function()
+          require("nabla").popup()
+        end,
+        desc = "Nabla popup",
+      },
+    },
   },
 
   {
@@ -210,12 +218,14 @@ return {
           "typescript",
           "vim",
           "vimdoc",
+          "latex",
         }
       end
     end,
     config = function()
       local treesitter = require "nvim-treesitter"
-      local base_parsers = { "lua", "markdown", "markdown_inline", "python", "query", "typescript", "vim", "vimdoc" }
+      local base_parsers =
+        { "lua", "markdown", "markdown_inline", "python", "query", "typescript", "vim", "vimdoc", "latex" }
 
       if vim.fn.executable "tree-sitter" == 1 then
         treesitter.install(base_parsers)

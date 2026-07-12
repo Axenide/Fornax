@@ -8,18 +8,12 @@
       url = "github:nix-community/nix4nvchad";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
-    txm = {
-      url = "github:thatmagicalcat/txm";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   outputs = {
     self,
     nixpkgs,
     nix4nvchad,
-    txm,
     ...
   }: let
     systems = [
@@ -59,7 +53,7 @@
       config,
       ...
     }: let
-      termCfg = import ./lib {inherit lib txm;};
+      termCfg = import ./lib {inherit lib;};
 
       opentuiSkillSrc = pkgs.fetchFromGitHub {
         owner = "anomalyco";
