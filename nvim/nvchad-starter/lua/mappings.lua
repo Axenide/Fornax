@@ -75,3 +75,7 @@ end, { desc = "Generate docstrings with Neogen" })
 map("n", "<leader>p", function()
   require("nabla").popup()
 end, { desc = "Nabla popup" })
+
+map({ "n", "v" }, "<leader>pt", function()
+  require("nabla").toggle_virt()
+end, { desc = "Nabla toggle virt" })
