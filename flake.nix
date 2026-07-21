@@ -8,12 +8,27 @@
       url = "github:nix-community/nix4nvchad";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    agent-skills.url = "github:Kyure-A/agent-skills-nix";
+
+    adk-skill = {
+      url = "github:dewitt/adk-skill";
+      flake = false;
+    };
+
+    opentui = {
+      url = "github:anomalyco/opentui";
+      flake = false;
+    };
   };
 
   outputs = {
     self,
     nixpkgs,
     nix4nvchad,
+    agent-skills,
+    adk-skill,
+    opentui,
     ...
   }: let
     systems = [
@@ -56,20 +71,10 @@
       termCfg = import ./lib {inherit lib;};
       wrappers = import ./lib/wrappers.nix {inherit pkgs lib;};
 
-      opentuiSkillSrc = pkgs.fetchFromGitHub {
-        owner = "anomalyco";
-        repo = "opentui";
-        rev = "71b129abdc0854ba5153486b5f29356488223006";
-        hash = "sha256-OLA7eNjQZPVsRufIZPrMYIQedcA16IEkHzChm+gXBIA=";
-      };
-
       opencodeXdg = pkgs.runCommand "axenide-opencode-xdg" {} ''
         mkdir -p $out/opencode
         cp -rL ${./opencode/opencode.json} $out/opencode/opencode.json
         cp -rL ${./opencode/AGENTS.md} $out/opencode/AGENTS.md
-        mkdir -p $out/opencode/skills
-        cp -rL ${./skills}/. $out/opencode/skills/
-        cp -rL ${opentuiSkillSrc}/packages/web/src/content $out/opencode/skills/opentui
         chmod -R u+w $out
       '';
 
@@ -101,11 +106,31 @@
         '';
       };
     in {
+      imports = [agent-skills.homeManagerModules.default];
+
       options.programs.fornax = {
         enable = lib.mkEnableOption "Fornax: Axenide's terminal environment";
       };
 
       config = lib.mkIf config.programs.fornax.enable {
+        programs.agent-skills = {
+          enable = true;
+          sources = {
+            local.path = ./skills;
+            adk = {
+              path = adk-skill;
+              subdir = "skill";
+            };
+            opentui = {
+              path = opentui;
+              subdir = "packages/web/src/content";
+            };
+          };
+          skills.enableAll = ["local"];
+          skills.enable = ["adk" "opentui"];
+          targets.opencode.enable = true;
+        };
+
         home.packages = termCfg.extraPackages pkgs ++ [bunPkg nvchadPkg opencodePkg];
 
         programs.fish.enable = true;
@@ -149,7 +174,7 @@
         home.activation.syncOpencodeConfig = lib.hm.dag.entryAfter ["linkGeneration"] ''
           mkdir -p "$HOME/.config/opencode"
           chmod -R u+w "$HOME/.config/opencode" 2>/dev/null || true
-          rm -rf "$HOME/.config/opencode/opencode.json" "$HOME/.config/opencode/AGENTS.md" "$HOME/.config/opencode/skills"
+          rm -rf "$HOME/.config/opencode/opencode.json" "$HOME/.config/opencode/AGENTS.md"
           cp -rL ${opencodeXdg}/opencode/. "$HOME/.config/opencode/"
           chmod -R u+w "$HOME/.config/opencode"
         '';

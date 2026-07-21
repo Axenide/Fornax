@@ -1,5 +1,40 @@
 {
   "nodes": {
+    "adk-skill": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1772046135,
+        "narHash": "sha256-64U5xkEShjbt5Q+nAaz6lb2gEKTDIvmw3uzuv1MCLRE=",
+        "owner": "dewitt",
+        "repo": "adk-skill",
+        "rev": "9a1c33c251412de7d4290af6be3e25ef9dae8b75",
+        "type": "github"
+      },
+      "original": {
+        "owner": "dewitt",
+        "repo": "adk-skill",
+        "type": "github"
+      }
+    },
+    "agent-skills": {
+      "inputs": {
+        "home-manager": "home-manager",
+        "nixpkgs": "nixpkgs"
+      },
+      "locked": {
+        "lastModified": 1783839654,
+        "narHash": "sha256-rn5DkeQ9PBaJTZl9juBtPnVawyN4B83tyz1VpiinQFo=",
+        "owner": "Kyure-A",
+        "repo": "agent-skills-nix",
+        "rev": "8326df98cf494dc515db99affa9ea9d2bd6666b6",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Kyure-A",
+        "repo": "agent-skills-nix",
+        "type": "github"
+      }
+    },
     "flake-utils": {
       "inputs": {
         "systems": "systems"
@@ -15,6 +50,27 @@
       "original": {
         "owner": "numtide",
         "repo": "flake-utils",
+        "type": "github"
+      }
+    },
+    "home-manager": {
+      "inputs": {
+        "nixpkgs": [
+          "agent-skills",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1783222121,
+        "narHash": "sha256-E/ElL373TO8lQ2aMvYyzN+k4xkVaUGoRqoa8AtM71tI=",
+        "owner": "nix-community",
+        "repo": "home-manager",
+        "rev": "a1645f40777620c4bd2b6d854b290c2fc354a266",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "home-manager",
         "type": "github"
       }
     },
@@ -41,6 +97,22 @@
       }
     },
     "nixpkgs": {
+      "locked": {
+        "lastModified": 1783224372,
+        "narHash": "sha256-8i/87eeoqiGE4yOTjwSA3Eh/ziJRQEmd/unYU+K27sk=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "d407951447dcd00442e97087bf374aad70c04cea",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_2": {
       "locked": {
         "lastModified": 1783475452,
         "narHash": "sha256-3S92fSuv32mjJz2Qb2F4405c21J55F4NIphz5K6hxco=",
@@ -73,10 +145,29 @@
         "type": "github"
       }
     },
+    "opentui": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1784379884,
+        "narHash": "sha256-ugjgC76SvwwZWPoroHdGVn0tRj0X73ThwKWQmmYAKwI=",
+        "owner": "anomalyco",
+        "repo": "opentui",
+        "rev": "34e78b2fbf18fd969efdf5f3e2589d17d1f536f1",
+        "type": "github"
+      },
+      "original": {
+        "owner": "anomalyco",
+        "repo": "opentui",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
+        "adk-skill": "adk-skill",
+        "agent-skills": "agent-skills",
         "nix4nvchad": "nix4nvchad",
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs_2",
+        "opentui": "opentui"
       }
     },
     "systems": {

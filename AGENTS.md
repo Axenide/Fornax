@@ -12,7 +12,7 @@ Global agent rules (commit style, branch safety, comments policy, language) live
 
 ## Layout
 
-- `flake.nix` — outputs. `homeManagerModules.default` wires fish, tmux, NvChad, the opencode wrapper, the `xdg.configFile` symlinks, bun, and the four activation hooks (`refreshTmux`, `syncOpencodeConfig`, `setupNpm`, `installNvChad`). Also pins `bun` and the `opentui` skill source.
+- `flake.nix` — outputs. `homeManagerModules.default` wires fish, tmux, NvChad, the opencode wrapper, the `xdg.configFile` symlinks, bun, the four activation hooks, and the `agent-skills-nix` Home Manager module. Also pins the flake inputs for the local and remote skills.
 - `lib/default.nix` — pure config: `configPaths`, `extraPackages`, `toolingPackages`, `tmuxPlugins`, `nvchadConfig`, `secretsFile`.
 - `lib/wrappers.nix` — only `mkOpencodeWrapper`. Builds the `opencode` binary (a `writeShellApplication` running `npx -y opencode-ai@latest`) with `nodejs` + `mcp-nixos` on the runtime path. Installed at `~/.nix-profile/bin/opencode` via `home.packages`.
 - `fish/` — config files (`config.fish`, `aliases.fish`, `env.fish`, `ffmpeg.fish`, `conf.d/`). `fish/functions/` holds the secrets helpers. `fish_plugins` only declares `jorgebucaran/fisher` (the plugin manager; no plugins installed by fornax).
@@ -20,13 +20,16 @@ Global agent rules (commit style, branch safety, comments policy, language) live
 - `nvim/nvchad-starter/` — vendored NvChad v2.5 starter, locally customized. Theme: `wallsync` (`lua/chadrc.lua`).
 - `btop/btop.conf` — symlinked to `~/.config/btop/btop.conf` by `xdg.configFile`.
 - `opencode/` — OpenCode CLI config bundle (config, global rules, own `.gitignore`).
-- `skills/` — local OpenCode skills, materialized to `~/.config/opencode/skills/` on every switch. Current entries: `bubbletea-go-tui-builder`, `rust-gtk4-expert`. The `opentui` skill is pinned inside `flake.nix` (not under `skills/`) and copied into the bundle from there.
+- `skills/` — local OpenCode skills, materialized to `~/.config/opencode/skills/` on every switch via `agent-skills-nix`. Current entries: `bubbletea-go-tui-builder`, `rust-gtk4-expert`. Remote skills (`adk`, `opentui`) come from pinned flake inputs declared in `flake.nix`.
 - Root `.gitignore` only ignores `result` / `result-*` (Nix build symlinks). Don't add generated Nix store paths to commits.
 
 ## Flake Inputs
 
 - `nixpkgs` (`nixpkgs-unstable`) — package source.
 - `nix4nvchad` (`github:nix-community/nix4nvchad`) — used internally to build `packages.<system>.nvchad`. Consumers do not need to declare it.
+- `agent-skills` (`github:Kyure-A/agent-skills-nix`) — Home Manager module that discovers, selects and syncs skills into agent targets.
+- `adk-skill` (`github:dewitt/adk-skill`, non-flake) — source of the Google ADK skill.
+- `opentui` (`github:anomalyco/opentui`, non-flake) — source of the OpenTUI skill at `packages/web/src/content`.
 
 ## Flake Outputs
 
@@ -58,8 +61,8 @@ All four are `entryAfter ["linkGeneration"]` so they run after symlinks are in p
 Missing either silently drops the function from the install.
 
 **Skill** for OpenCode:
-1. Drop a directory under `skills/<name>/` with a `SKILL.md` (frontmatter `name` must match the directory name). It auto-flows into `~/.config/opencode/skills/` on every switch via `syncOpencodeConfig`.
-2. The `opentui` skill is pinned inside `flake.nix` via `fetchFromGitHub` — no `skills/` entry needed; `syncOpencodeConfig` copies it from `${opentuiSkillSrc}`. Bump `rev` and `hash` together when updating.
+1. Drop a directory under `skills/<name>/` with a `SKILL.md` (frontmatter `name` must match the directory name). It auto-flows into `~/.config/opencode/skills/` on every switch via `agent-skills-nix`.
+2. The `opentui` and `adk` skills are pinned inside `flake.nix` as non-flake inputs and selected via `programs.agent-skills.skills.enable`. Bump the matching input `rev` in `flake.lock` when updating.
 
 ## Secrets Workflow
 
@@ -89,8 +92,9 @@ NvChad v2.5 (`nvim/nvchad-starter/init.lua` pins `branch = "v2.5"`). Format Lua 
 `opencode/opencode.json` enables remote MCP servers `context7`, `deepwiki`, `gitmcp`, `excalidraw`, plus a local `nixos` server backed by `mcp-nixos` from nixpkgs. `permission: "allow"` (all tool calls auto-approved — be careful), `lsp: true`, `instructions: ["./AGENTS.md"]` (loads the global rules file into every OpenCode session).
 
 Materialization:
-- The derivation `${opencodeXdg}/opencode/` (built inside `homeManagerModules.default`) combines `opencode/opencode.json`, `opencode/AGENTS.md`, the local `skills/`, and the pinned `opentui` skill.
-- The `syncOpencodeConfig` hook overwrites `~/.config/opencode/` from that derivation on every switch.
+- The derivation `${opencodeXdg}/opencode/` (built inside `homeManagerModules.default`) combines `opencode/opencode.json` and `opencode/AGENTS.md`.
+- The `agent-skills` Home Manager module materializes skills from the bundle into `~/.config/opencode/skills/` via its own activation hook (`agent-skills`), which runs after `writeBoundary` and `--delete`s via rsync on every switch.
+- The `syncOpencodeConfig` hook overwrites `~/.config/opencode/{opencode.json, AGENTS.md}` from that derivation on every switch. The skills directory is left to `agent-skills` and other `~/.config/opencode/` content is untouched.
 - The `opencode` binary (`lib/wrappers.nix`) is a `writeShellApplication` that runs `npx -y opencode-ai@latest` with `nodejs` + `mcp-nixos` on the runtime path. Installed at `~/.nix-profile/bin/opencode` via `home.packages`. When `$0` is in `/nix/store/...` it points `OPENCODE_CONFIG` straight at the store derivation; otherwise it points at the user-level copy managed by the `syncOpencodeConfig` hook.
 
 ## Verify After Edits

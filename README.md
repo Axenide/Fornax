@@ -36,7 +36,8 @@ In your home-manager flake:
 ```
 
 Then `home-manager switch`. On every switch:
-- `~/.config/opencode/{opencode.json, AGENTS.md, skills/}` is overwritten from the repo (source of truth).
+- `~/.config/opencode/{opencode.json, AGENTS.md}` is overwritten from the repo (source of truth).
+- `~/.config/opencode/skills/` is populated by `agent-skills-nix` from the local `skills/` directory plus the pinned `adk-skill` and `opentui` inputs.
 - If a tmux server is alive, `default-shell` + global `SHELL` are updated to the new fish and the config is re-sourced — non-destructive, your panes stay.
 
 ## Working on Fornax itself
