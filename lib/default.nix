@@ -48,7 +48,6 @@ in {
       pkgs.fish
       pkgs.tmux
       pkgs.neovim
-      pkgs.starship
       pkgs.zoxide
       pkgs.fastfetch
       pkgs.ffmpeg

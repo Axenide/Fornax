@@ -69,7 +69,6 @@
       ...
     }: let
       termCfg = import ./lib {inherit lib;};
-      wrappers = import ./lib/wrappers.nix {inherit pkgs lib;};
 
       opencodeXdg = pkgs.runCommand "axenide-opencode-xdg" {} ''
         mkdir -p $out/opencode
@@ -78,7 +77,7 @@
         chmod -R u+w $out
       '';
 
-      opencodePkg = wrappers.mkOpencodeWrapper pkgs opencodeXdg;
+      opencodePkg = pkgs.opencode;
 
       nvchadPkg = self.packages.${pkgs.system}.nvchad;
 
@@ -134,6 +133,64 @@
         home.packages = termCfg.extraPackages pkgs ++ [bunPkg nvchadPkg opencodePkg];
 
         programs.fish.enable = true;
+
+        programs.starship = {
+          enable = true;
+          enableFishIntegration = true;
+
+          settings = {
+            add_newline = false;
+            command_timeout = 1000;
+
+            format = lib.concatStrings [
+              "$directory"
+              "$git_branch"
+              "$git_state"
+              "$git_status"
+              "$cmd_duration"
+              "$line_break"
+              "$character"
+            ];
+
+            character = {
+              success_symbol = "[»](bold red)";
+              error_symbol = "[✖](bold red)";
+            };
+
+            directory = {
+              read_only = " ";
+              format = "[$path]($style) ";
+              style = "bold green";
+            };
+
+            git_branch = {
+              format = "[󰘬 $branch]($style)";
+              style = "bold bright-black";
+            };
+
+            git_status = {
+              format = " [$conflicted$untracked$modified$staged$renamed$deleted$ahead_behind$stashed ]($style)";
+              style = "cyan";
+              conflicted = "";
+              untracked = "";
+              modified = "";
+              staged = "";
+              renamed = "";
+              deleted = "";
+              stashed = "≡";
+            };
+
+            git_state = {
+              format = "\\([$state( $progress_current/$progress_total)]($style)\\) ";
+              style = "bold bright-black";
+            };
+
+            cmd_duration = {
+              format = "[󱦟 $duration]($style)";
+              style = "yellow";
+            };
+          };
+        };
 
         xdg.configFile = {
           "btop/btop.conf".source = termCfg.configPaths.btop;

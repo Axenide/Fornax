@@ -12,13 +12,13 @@ Global agent rules (commit style, branch safety, comments policy, language) live
 
 ## Layout
 
-- `flake.nix` — outputs. `homeManagerModules.default` wires fish, tmux, NvChad, the opencode wrapper, the `xdg.configFile` symlinks, bun, the four activation hooks, and the `agent-skills-nix` Home Manager module. Also pins the flake inputs for the local and remote skills.
+- `flake.nix` — outputs. `homeManagerModules.default` wires fish, tmux, NvChad, the opencode binary, the `xdg.configFile` symlinks, bun, the four activation hooks, and the `agent-skills-nix` Home Manager module. Also pins the flake inputs for the local and remote skills.
 - `lib/default.nix` — pure config: `configPaths`, `extraPackages`, `toolingPackages`, `tmuxPlugins`, `nvchadConfig`, `secretsFile`.
-- `lib/wrappers.nix` — only `mkOpencodeWrapper`. Builds the `opencode` binary (a `writeShellApplication` running `npx -y opencode-ai@latest`) with `nodejs` + `mcp-nixos` on the runtime path. Installed at `~/.nix-profile/bin/opencode` via `home.packages`.
 - `fish/` — config files (`config.fish`, `aliases.fish`, `env.fish`, `ffmpeg.fish`, `conf.d/`). `fish/functions/` holds the secrets helpers. `fish_plugins` only declares `jorgebucaran/fisher` (the plugin manager; no plugins installed by fornax).
 - `tmux/tmux.conf` + `tmux/minimal.conf` — concatenated at build time into `programs.tmux.extraConfig`.
 - `nvim/nvchad-starter/` — vendored NvChad v2.5 starter, locally customized. Theme: `wallsync` (`lua/chadrc.lua`).
 - `btop/btop.conf` — symlinked to `~/.config/btop/btop.conf` by `xdg.configFile`.
+- Starship config is declared via `programs.starship` in `flake.nix` (home-manager's `modules/programs/starship.nix`): `settings` is the Nix attrset serialized to `~/.config/starship.toml`, and `enableFishIntegration = true` injects `starship init fish | source` into `fish.interactiveShellInit` (replaces the manual line previously in `fish/config.fish`).
 - `opencode/` — OpenCode CLI config bundle (config, global rules, own `.gitignore`).
 - `skills/` — local OpenCode skills, materialized to `~/.config/opencode/skills/` on every switch via `agent-skills-nix`. Current entries: `bubbletea-go-tui-builder`, `rust-gtk4-expert`. Remote skills (`adk`, `opentui`) come from pinned flake inputs declared in `flake.nix`.
 - Root `.gitignore` only ignores `result` / `result-*` (Nix build symlinks). Don't add generated Nix store paths to commits.
@@ -95,7 +95,8 @@ Materialization:
 - The derivation `${opencodeXdg}/opencode/` (built inside `homeManagerModules.default`) combines `opencode/opencode.json` and `opencode/AGENTS.md`.
 - The `agent-skills` Home Manager module materializes skills from the bundle into `~/.config/opencode/skills/` via its own activation hook (`agent-skills`), which runs after `writeBoundary` and `--delete`s via rsync on every switch.
 - The `syncOpencodeConfig` hook overwrites `~/.config/opencode/{opencode.json, AGENTS.md}` from that derivation on every switch. The skills directory is left to `agent-skills` and other `~/.config/opencode/` content is untouched.
-- The `opencode` binary (`lib/wrappers.nix`) is a `writeShellApplication` that runs `npx -y opencode-ai@latest` with `nodejs` + `mcp-nixos` on the runtime path. Installed at `~/.nix-profile/bin/opencode` via `home.packages`. When `$0` is in `/nix/store/...` it points `OPENCODE_CONFIG` straight at the store derivation; otherwise it points at the user-level copy managed by the `syncOpencodeConfig` hook.
+- The `opencode` binary is installed at `~/.nix-profile/bin/opencode` via `home.packages` from `pkgs.opencode` (no wrapper, no `npx`, no pinned flake input — version tracks `nixpkgs-unstable`). opencode auto-discovers `~/.config/opencode/opencode.json` via `$XDG_CONFIG_HOME`. The local `mcp-nixos` MCP server is reached because `mcp-nixos` is in `extraPackages` (already on PATH for the binary to spawn).
+- To bump: `nix flake update nixpkgs` (the version tracks nixpkgs-unstable).
 
 ## Verify After Edits
 
