@@ -28,17 +28,6 @@ in {
     tmux = ./. + "/../tmux/tmux.conf";
     tmuxMinimal = ./. + "/../tmux/minimal.conf";
     btop = ./. + "/../btop/btop.conf";
-    fish = {
-      config = ./. + "/../fish/config.fish";
-      aliases = ./. + "/../fish/aliases.fish";
-      env = ./. + "/../fish/env.fish";
-      ffmpeg = ./. + "/../fish/ffmpeg.fish";
-      plugins = ./. + "/../fish/fish_plugins";
-      fish_frozen_theme = ./. + "/../fish/conf.d/fish_frozen_theme.fish";
-      restoreSecrets = ./. + "/../fish/functions/restore-secrets.fish";
-      cleanSecrets = ./. + "/../fish/functions/clean-secrets.fish";
-      shredSecrets = ./. + "/../fish/functions/shred-secrets.fish";
-    };
   };
 
   secretsFile = "$HOME/.local/share/secrets/fish.fish";

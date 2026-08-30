@@ -132,7 +132,134 @@
 
         home.packages = termCfg.extraPackages pkgs ++ [bunPkg nvchadPkg opencodePkg];
 
-        programs.fish.enable = true;
+        home.sessionVariables = {
+          TERMINAL = "kitty";
+          EDITOR = "nvim";
+          NPM_CONFIG_PREFIX = "$HOME/.cache/npm/global";
+          BUN_INSTALL = "$HOME/.cache/bun";
+        };
+
+        home.sessionPath = [
+          "$HOME/.nix-profile/bin"
+          "$HOME/.cache/npm/global/bin"
+          "$HOME/.cache/bun/bin"
+        ];
+
+        programs.fish = {
+          enable = true;
+
+          shellInit = ''
+            xdg-user-dirs-update
+            set -l _secrets_file ~/.local/share/secrets/fish.fish
+            if test -e $_secrets_file
+              source $_secrets_file
+            end
+          '';
+
+          interactiveShellInit = ''
+            set -U fish_greeting
+            zoxide init fish | source
+          '';
+
+          shellAliases = {
+            anifetch = "kitty +kitten icat -n --place 100x8@0x0 --align left ${./assets/adrien.gif} | fastfetch -c minimal --logo-width 25 --raw -";
+            cavax = "TERM=st-256color cava";
+          };
+
+          functions = {
+            vcompat = "ffmpeg -i $argv[1] -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" -c:v libx264 -profile:v high -level:v 4.2 -pix_fmt yuv420p -movflags +faststart -c:a aac -strict -2 (dirname $argv[1])/(basename -s .mp4 $argv[1])_compat.mp4";
+
+            vcompatlb = ''
+              if test (count $argv) -lt 1
+                echo "Usage: vcompat archivo.mp4 [tasa_de_bits]"
+                return 1
+              end
+
+              set input_file $argv[1]
+              set output_file (dirname $input_file)/(basename -s .mp4 $input_file)_converted.mp4
+
+              if test (count $argv) -ge 2
+                set bitrate $argv[2]"M"
+              else
+                set bitrate 1"M"
+              end
+
+              ffmpeg -i $input_file -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" -c:v libx264 -profile:v high -level:v 4.2 -pix_fmt yuv420p -movflags +faststart -b:v $bitrate -c:a aac -strict -2 $output_file
+            '';
+
+            drconv = ''
+              if test (count $argv) -lt 1
+                echo "Usage: drconv archivo1 archivo2 ..."
+                return 1
+              end
+
+              for file in $argv
+                if test -f $file
+                  set output_file (dirname $file)/(basename -s .mp4 $file)_dr.mov
+                  ffmpeg -i $file -vcodec mjpeg -q:v 2 -acodec pcm_s16be -q:a 0 -f mov $output_file
+                  echo "Processed: $file -> $output_file"
+                else
+                  echo "Skipping: $file (not a regular file)"
+                end
+              end
+            '';
+
+            restore-secrets = ''
+              set -l secrets_dir ~/.local/share/secrets
+              set -l secrets_file $secrets_dir/fish.fish
+
+              mkdir -p $secrets_dir
+
+              if not bw login --check >/dev/null 2>&1
+                echo "Logging in to Bitwarden..."
+                bw login
+              end
+
+              echo "Unlocking vault..."
+              set -gx BW_SESSION (bw unlock --raw)
+
+              echo "Syncing vault..."
+              bw sync
+
+              echo "Downloading secrets..."
+              bw get notes fish-secrets > $secrets_file
+
+              chmod 600 $secrets_file
+
+              echo "Secrets restored to $secrets_file"
+            '';
+
+            clean-secrets = ''
+              set -l secrets_dir ~/.local/share/secrets
+              set -l secrets_file $secrets_dir/fish.fish
+
+              if not test -e $secrets_file
+                echo "No secrets file at $secrets_file"
+                return 0
+              end
+
+              rm -f $secrets_file
+              rmdir $secrets_dir 2>/dev/null
+
+              echo "Removed $secrets_file"
+            '';
+
+            shred-secrets = ''
+              set -l secrets_dir ~/.local/share/secrets
+              set -l secrets_file $secrets_dir/fish.fish
+
+              if not test -e $secrets_file
+                echo "No secrets file at $secrets_file"
+                return 0
+              end
+
+              shred -u -v -z -n 3 $secrets_file
+              rmdir $secrets_dir 2>/dev/null
+
+              echo "Securely shredded $secrets_file"
+            '';
+          };
+        };
 
         programs.starship = {
           enable = true;
@@ -194,15 +321,6 @@
 
         xdg.configFile = {
           "btop/btop.conf".source = termCfg.configPaths.btop;
-          "fish/config.fish".source = lib.mkForce termCfg.configPaths.fish.config;
-          "fish/aliases.fish".source = lib.mkForce termCfg.configPaths.fish.aliases;
-          "fish/env.fish".source = lib.mkForce termCfg.configPaths.fish.env;
-          "fish/ffmpeg.fish".source = lib.mkForce termCfg.configPaths.fish.ffmpeg;
-          "fish/fish_plugins".source = lib.mkForce termCfg.configPaths.fish.plugins;
-          "fish/functions/restore-secrets.fish".source = lib.mkForce termCfg.configPaths.fish.restoreSecrets;
-          "fish/functions/clean-secrets.fish".source = lib.mkForce termCfg.configPaths.fish.cleanSecrets;
-          "fish/functions/shred-secrets.fish".source = lib.mkForce termCfg.configPaths.fish.shredSecrets;
-          "fish/conf.d/fish_frozen_theme.fish".source = lib.mkForce termCfg.configPaths.fish.fish_frozen_theme;
         };
 
         programs.tmux = {
