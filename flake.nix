@@ -349,6 +349,7 @@
 
         xdg.configFile = {
           "btop/btop.conf".source = termCfg.configPaths.btop;
+          "cliamp/config.toml".source = termCfg.configPaths.cliamp;
         };
 
         programs.tmux = {

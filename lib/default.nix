@@ -28,6 +28,7 @@ in {
     tmux = ./. + "/../tmux/tmux.conf";
     tmuxMinimal = ./. + "/../tmux/minimal.conf";
     btop = ./. + "/../btop/btop.conf";
+    cliamp = ./. + "/../cliamp/config.toml";
   };
 
   secretsFile = "$HOME/.local/share/secrets/fish.fish";
@@ -50,6 +51,7 @@ in {
       pkgs.btop
       pkgs.coreutils
       pkgs.mcp-nixos
+      pkgs.cliamp
     ]
     ++ (toolingPackages pkgs);
 

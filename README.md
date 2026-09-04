@@ -11,6 +11,7 @@
 - zoxide
 - yazi
 - fastfetch, cava, ffmpeg
+- cliamp
 - bitwarden-cli
 - opencode (CLI + bundled config/skills)
 
