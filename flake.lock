@@ -58,6 +58,26 @@
         "type": "github"
       }
     },
+    "cliamp": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1788358469,
+        "narHash": "sha256-SzLMAO3jAwc+RBczArjpikHJappcFPtQBkxg8/tGrsg=",
+        "owner": "bjarneo",
+        "repo": "cliamp",
+        "rev": "fc9f86d6e95f987bfe837b492107b2194dc9476f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "bjarneo",
+        "repo": "cliamp",
+        "type": "github"
+      }
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -169,6 +189,7 @@
       "inputs": {
         "adk-skill": "adk-skill",
         "agent-skills": "agent-skills",
+        "cliamp": "cliamp",
         "nix4nvchad": "nix4nvchad",
         "nixpkgs": "nixpkgs_2",
         "opentui": "opentui"

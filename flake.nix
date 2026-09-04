@@ -20,6 +20,11 @@
       url = "github:anomalyco/opentui";
       flake = false;
     };
+
+    cliamp = {
+      url = "github:bjarneo/cliamp";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = {
@@ -29,6 +34,7 @@
     agent-skills,
     adk-skill,
     opentui,
+    cliamp,
     ...
   }: let
     systems = [
@@ -46,9 +52,24 @@
       })).overrideAttrs (_: {
         dontWrapQtApps = true;
       });
+
+    cliampFor = system: let
+      pkgs = import nixpkgs {inherit system;};
+    in
+      (cliamp.packages.${system}.default.override {
+        alsa-lib = pkgs.alsa-lib-with-plugins.override {
+          plugins = [
+            pkgs.alsa-plugins
+            pkgs.pipewire
+          ];
+        };
+      }).overrideAttrs (_: {
+        vendorHash = "sha256-rtwUWbft5XGEbuBCn0OMCn4TS5Ul+UXJNIqNOzXfU+M=";
+      });
   in {
     packages = forAllSystems (system: {
       nvchad = nvchadFor system;
+      cliamp = cliampFor system;
       default = nvchadFor system;
     });
 
@@ -80,6 +101,8 @@
       opencodePkg = pkgs.opencode;
 
       nvchadPkg = self.packages.${pkgs.system}.nvchad;
+
+      cliampPkg = self.packages.${pkgs.system}.cliamp;
 
       bunVersion = "1.3.14";
       bunSrcs = {
@@ -130,7 +153,7 @@
           targets.opencode.enable = true;
         };
 
-        home.packages = termCfg.extraPackages pkgs ++ [bunPkg nvchadPkg opencodePkg];
+        home.packages = termCfg.extraPackages pkgs ++ [bunPkg nvchadPkg opencodePkg cliampPkg];
 
         home.sessionVariables = {
           TERMINAL = "kitty";

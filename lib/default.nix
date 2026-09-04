@@ -51,14 +51,6 @@ in {
       pkgs.btop
       pkgs.coreutils
       pkgs.mcp-nixos
-      (pkgs.cliamp.override {
-        alsa-lib = pkgs.alsa-lib-with-plugins.override {
-          plugins = [
-            pkgs.alsa-plugins
-            pkgs.pipewire
-          ];
-        };
-      })
     ]
     ++ (toolingPackages pkgs);
 
