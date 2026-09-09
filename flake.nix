@@ -100,9 +100,9 @@
 
       opencodePkg = pkgs.opencode;
 
-      nvchadPkg = self.packages.${pkgs.system}.nvchad;
+      nvchadPkg = self.packages.${pkgs.stdenv.hostPlatform.system}.nvchad;
 
-      cliampPkg = self.packages.${pkgs.system}.cliamp;
+      cliampPkg = self.packages.${pkgs.stdenv.hostPlatform.system}.cliamp;
 
       bunVersion = "1.3.14";
       bunSrcs = {
