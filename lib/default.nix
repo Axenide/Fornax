@@ -6,7 +6,7 @@
     black
     curl
     gnumake
-    go
+    go_latest
     imagemagick
     isort
     nixd
