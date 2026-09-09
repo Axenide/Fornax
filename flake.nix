@@ -64,7 +64,7 @@
           ];
         };
       }).overrideAttrs (_: {
-        vendorHash = "sha256-rtwUWbft5XGEbuBCn0OMCn4TS5Ul+UXJNIqNOzXfU+M=";
+        vendorHash = "sha256-d/ENFm9b1DkIir1lz50VVX1pvuQpwPUVlA5XOC7Jj5o=";
       });
   in {
     packages = forAllSystems (system: {
