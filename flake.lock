@@ -65,11 +65,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1788894730,
-        "narHash": "sha256-cQNR24YEsv1gPZZYEQqYtRrTjhztOeheCfZaWI8t1Hg=",
+        "lastModified": 1788962209,
+        "narHash": "sha256-pXACeBx679cxFom96Q3+uZwYDt/4DQuxttw5ZF21ijo=",
         "owner": "bjarneo",
         "repo": "cliamp",
-        "rev": "d40cb792b606fd5ac37b63dd24a516f79af65a98",
+        "rev": "93a4ac69222a9e172d20b960d4329b73e8c79ecd",
         "type": "github"
       },
       "original": {
@@ -138,11 +138,11 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1788894124,
-        "narHash": "sha256-guyexwrrF5GBKqjO0eg9LNIvrXn4j2frNak63sDr8zg=",
+        "lastModified": 1789012029,
+        "narHash": "sha256-1CBkBf+Nhggykzlx0jvXrj5rk20btl+tK8Fa8Ml/BL4=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "da39501c8d0a093136854eddcd6927c8a8bb0d8f",
+        "rev": "d5dfd8e6716dde34398bc14bc87c10dece9c8c68",
         "type": "github"
       },
       "original": {
@@ -172,11 +172,11 @@
     "opentui": {
       "flake": false,
       "locked": {
-        "lastModified": 1788777723,
-        "narHash": "sha256-oKp4iQFflhZ6LK2sA2q8HcKLZ9rTJ0hIpbxO0YPLhas=",
+        "lastModified": 1788950731,
+        "narHash": "sha256-+G9rBWOxAPAinFHMQ32gZEFcojlBP4CfEjW7hg/yU8s=",
         "owner": "anomalyco",
         "repo": "opentui",
-        "rev": "6b9863ea7c5fae22bfebb23c242ddcc4c2b0aa0e",
+        "rev": "ac753b48d386707a931dcf881d0741905b64b4f9",
         "type": "github"
       },
       "original": {
