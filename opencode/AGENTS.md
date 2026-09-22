@@ -19,3 +19,7 @@
 - Everything stays LOCAL unless the user explicitly says otherwise.
 - If the current branch is `main` or `master`, WARN the user before making any changes. The user may authorize working on it, but always ask first.
 - Commit messages MUST be title-only. Do NOT add a description body.
+
+## Browser Annotations
+
+- When a turn is a browser annotation (it says so and references the `browser-annotation` skill), load that skill and use the element metadata (component path, data-testid/id/role, ancestors, nearest region, text) to locate and change the corresponding code. Confirm the element exists before editing.
