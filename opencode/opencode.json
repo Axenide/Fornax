@@ -24,6 +24,14 @@
     "nixos": {
       "type": "local",
       "command": ["mcp-nixos"]
+    },
+    "wayback-machine": {
+      "type": "local",
+      "command": ["npx", "-y", "mcp-wayback-machine"],
+      "environment": {
+        "WAYBACK_ACCESS_KEY": "{env:WAYBACK_ACCESS_KEY}",
+        "WAYBACK_SECRET_KEY": "{env:WAYBACK_SECRET_KEY}"
+      }
     }
   },
   "permission": "allow",
