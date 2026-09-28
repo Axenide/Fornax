@@ -63,8 +63,6 @@
             pkgs.pipewire
           ];
         };
-      }).overrideAttrs (_: {
-        vendorHash = "sha256-d/ENFm9b1DkIir1lz50VVX1pvuQpwPUVlA5XOC7Jj5o=";
       });
   in {
     packages = forAllSystems (system: {
