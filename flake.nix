@@ -327,11 +327,77 @@
                 return 0
               end
 
-              shred -u -v -z -n 3 $secrets_file
-              rmdir $secrets_dir 2>/dev/null
+            shred -u -v -z -n 3 $secrets_file
+            rmdir $secrets_dir 2>/dev/null
 
-              echo "Securely shredded $secrets_file"
-            '';
+            echo "Securely shredded $secrets_file"
+          '';
+
+          cliamp-setup-lastfm = ''
+            set -l api_url "http://ws.audioscrobbler.com/2.0/"
+
+            if not type -q jq
+              echo "jq is required"
+              return 1
+            end
+
+            if not test -e ~/.config/cliamp/config.toml
+              echo "Missing ~/.config/cliamp/config.toml"
+              return 1
+            end
+
+            if cliamp plugins list 2>/dev/null | string match -q --regex "cliamp-lastfm"
+              echo "cliamp-lastfm already installed"
+            else
+              echo "Installing cliamp-lastfm..."
+              cliamp plugins install --yes tetsuo76/cliamp-lastfm; or return 1
+            end
+
+            echo "Opening Last.fm API registration..."
+            xdg-open "https://www.last.fm/api/account/create" >/dev/null 2>&1; or true
+            echo "Register an app (any name, ignore the callback URL) and paste the credentials."
+            read -P "API Key: " api_key
+            read -P "API Secret: " api_secret
+            if test -z "$api_key"; or test -z "$api_secret"
+              echo "API credentials cannot be empty"
+              return 1
+            end
+
+            echo "Requesting auth token..."
+            set -l response (curl -s "$api_url?method=auth.getToken&api_key=$api_key&format=json")
+            set -l auth_token (echo "$response" | jq -r ".token // empty")
+            if test -z "$auth_token"
+              echo "Failed to get auth token: $response"
+              return 1
+            end
+
+            set -l auth_url "https://www.last.fm/api/auth/?api_key=$api_key&token=$auth_token"
+            echo "Opening Last.fm authorization page..."
+            xdg-open "$auth_url" >/dev/null 2>&1; or echo "Open this URL: $auth_url"
+            read -P "Press Enter after clicking ALLOW..."
+
+            set -l sig_str (printf "%s\n" "api_key$api_key" "methodauth.getSession" "token$auth_token" | sort | string join "")
+            set -l api_sig (echo -n "$sig_str$api_secret" | md5sum | string split -f1 " ")
+
+            echo "Exchanging token for session key..."
+            set -l response (curl -s "$api_url?method=auth.getSession&api_key=$api_key&token=$auth_token&api_sig=$api_sig&format=json")
+            set -l session_key (echo "$response" | jq -r ".session.key // empty")
+            set -l username (echo "$response" | jq -r ".session.name // empty")
+            if test -z "$session_key"
+              echo "Failed to get session key: $(echo "$response" | jq -r ".message // \\"Unknown error\\"")"
+              return 1
+            end
+
+            echo ""
+            echo "Setup complete. Add these to your fish-secrets Bitwarden note:"
+            echo ""
+            echo "set -gx LASTFM_API_KEY $api_key"
+            echo "set -gx LASTFM_API_SECRET $api_secret"
+            echo "set -gx LASTFM_SESSION_KEY $session_key"
+            echo "set -gx LASTFM_USERNAME $username"
+            echo ""
+            echo "Then run restore-secrets and restart cliamp to start scrobbling."
+          '';
           };
         };
 
