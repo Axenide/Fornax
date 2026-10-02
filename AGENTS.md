@@ -30,6 +30,7 @@ Global agent rules (commit style, branch safety, comments policy, language) live
 - `agent-skills` (`github:Kyure-A/agent-skills-nix`) — Home Manager module that discovers, selects and syncs skills into agent targets.
 - `adk-skill` (`github:dewitt/adk-skill`, non-flake) — source of the Google ADK skill.
 - `opentui` (`github:anomalyco/opentui`, non-flake) — source of the OpenTUI skill at `packages/web/src/content`.
+- `blender-mcp` (`git+https://projects.blender.org/lab/blender_mcp`, non-flake) — source for `packages.<system>.blender-mcp` (the Blender MCP server binary; built from the `mcp/` setuptools subdirectory with `python3Packages.buildPythonApplication`). Installed into `home.packages` and wired as the local `blender` MCP server in `opencode/opencode.json`. Bump via `nix flake update blender-mcp`.
 
 ## Flake Outputs
 
@@ -89,7 +90,7 @@ NvChad v2.5 (`nvim/nvchad-starter/init.lua` pins `branch = "v2.5"`). Format Lua 
 
 ## OpenCode Sub-bundle
 
-`opencode/opencode.json` enables remote MCP servers `context7`, `deepwiki`, `gitmcp`, `excalidraw`, plus a local `nixos` server backed by `mcp-nixos` from nixpkgs. `permission: "allow"` (all tool calls auto-approved — be careful), `lsp: true`, `instructions: ["./AGENTS.md"]` (loads the global rules file into every OpenCode session).
+`opencode/opencode.json` enables remote MCP servers `context7`, `deepwiki`, `gitmcp`, `excalidraw`, plus local `nixos` (backed by `mcp-nixos` from nixpkgs) and `blender` (backed by `packages.<system>.blender-mcp`, built from the `blender-mcp` flake input). `permission: "allow"` (all tool calls auto-approved — be careful), `lsp: true`, `instructions: ["./AGENTS.md"]` (loads the global rules file into every OpenCode session).
 
 Materialization:
 - The derivation `${opencodeXdg}/opencode/` (built inside `homeManagerModules.default`) combines `opencode/opencode.json` and `opencode/AGENTS.md`.

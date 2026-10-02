@@ -25,6 +25,11 @@
       url = "github:bjarneo/cliamp";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    blender-mcp = {
+      url = "git+https://projects.blender.org/lab/blender_mcp";
+      flake = false;
+    };
   };
 
   outputs = {
@@ -35,6 +40,7 @@
     adk-skill,
     opentui,
     cliamp,
+    blender-mcp,
     ...
   }: let
     systems = [
@@ -64,10 +70,27 @@
           ];
         };
       });
+
+    blenderMcpFor = system: let
+      pkgs = import nixpkgs {inherit system;};
+    in
+      pkgs.python3Packages.buildPythonApplication {
+        pname = "blender-mcp";
+        version = "1.0.2";
+        pyproject = true;
+        src = blender-mcp + "/mcp";
+        build-system = [pkgs.python3Packages.setuptools];
+        dependencies = with pkgs.python3Packages; [
+          mcp
+          docutils
+          pyyaml
+        ];
+      };
   in {
     packages = forAllSystems (system: {
       nvchad = nvchadFor system;
       cliamp = cliampFor system;
+      blender-mcp = blenderMcpFor system;
       default = nvchadFor system;
     });
 
@@ -101,6 +124,8 @@
       nvchadPkg = self.packages.${pkgs.stdenv.hostPlatform.system}.nvchad;
 
       cliampPkg = self.packages.${pkgs.stdenv.hostPlatform.system}.cliamp;
+
+      blenderMcpPkg = self.packages.${pkgs.stdenv.hostPlatform.system}.blender-mcp;
 
       bunVersion = "1.3.14";
       bunSrcs = {
@@ -151,7 +176,7 @@
           targets.opencode.enable = true;
         };
 
-        home.packages = termCfg.extraPackages pkgs ++ [bunPkg nvchadPkg opencodePkg cliampPkg];
+        home.packages = termCfg.extraPackages pkgs ++ [bunPkg nvchadPkg opencodePkg cliampPkg blenderMcpPkg];
 
         home.sessionVariables = {
           TERMINAL = "kitty";

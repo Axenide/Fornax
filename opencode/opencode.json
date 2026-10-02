@@ -25,6 +25,10 @@
       "type": "local",
       "command": ["mcp-nixos"]
     },
+    "blender": {
+      "type": "local",
+      "command": ["blender-mcp"]
+    },
     "wayback-machine": {
       "type": "local",
       "command": ["npx", "-y", "mcp-wayback-machine"],
