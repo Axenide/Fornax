@@ -350,7 +350,7 @@
               echo "cliamp-lastfm already installed"
             else
               echo "Installing cliamp-lastfm..."
-              cliamp plugins install --yes tetsuo76/cliamp-lastfm; or return 1
+              cliamp plugins install --yes Axenide/cliamp-lastfm; or return 1
             end
 
             echo "Opening Last.fm API registration..."
