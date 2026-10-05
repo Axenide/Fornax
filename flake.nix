@@ -53,23 +53,23 @@
       pkgs = import nixpkgs {inherit system;};
       termCfg = import ./lib {lib = pkgs.lib;};
     in
-      (nix4nvchad.packages.${system}.default.override (termCfg.nvchadConfig pkgs // {
-        starterRepo = self + "/nvim/nvchad-starter";
-      })).overrideAttrs (_: {
+      (nix4nvchad.packages.${system}.default.override (termCfg.nvchadConfig pkgs
+        // {
+          starterRepo = self + "/nvim/nvchad-starter";
+        })).overrideAttrs (_: {
         dontWrapQtApps = true;
       });
 
     cliampFor = system: let
       pkgs = import nixpkgs {inherit system;};
-    in
-      (cliamp.packages.${system}.default.override {
-        alsa-lib = pkgs.alsa-lib-with-plugins.override {
-          plugins = [
-            pkgs.alsa-plugins
-            pkgs.pipewire
-          ];
-        };
-      });
+    in (cliamp.packages.${system}.default.override {
+      alsa-lib = pkgs.alsa-lib-with-plugins.override {
+        plugins = [
+          pkgs.alsa-plugins
+          pkgs.pipewire
+        ];
+      };
+    });
 
     blenderMcpFor = system: let
       pkgs = import nixpkgs {inherit system;};
@@ -315,33 +315,172 @@
             '';
 
             shred-secrets = ''
+                set -l secrets_dir ~/.local/share/secrets
+                set -l secrets_file $secrets_dir/fish.fish
+
+                if not test -e $secrets_file
+                  echo "No secrets file at $secrets_file"
+                  return 0
+                end
+
+              shred -u -v -z -n 3 $secrets_file
+              rmdir $secrets_dir 2>/dev/null
+
+              echo "Securely shredded $secrets_file"
+            '';
+
+            update-secrets = ''
               set -l secrets_dir ~/.local/share/secrets
               set -l secrets_file $secrets_dir/fish.fish
 
               if not test -e $secrets_file
-                echo "No secrets file at $secrets_file"
-                return 0
+                echo "No secrets file at $secrets_file (run restore-secrets first)"
+                return 1
               end
 
-            shred -u -v -z -n 3 $secrets_file
-            rmdir $secrets_dir 2>/dev/null
+              if not bw login --check >/dev/null 2>&1
+                echo "Logging in to Bitwarden..."
+                bw login
+              end
 
-            echo "Securely shredded $secrets_file"
-          '';
+              echo "Unlocking vault..."
+              set -gx BW_SESSION (bw unlock --raw)
 
-          cliamp-setup-axworker = ''
-            if not test -e ~/.config/cliamp/config.toml
-              echo "Missing ~/.config/cliamp/config.toml"
-              return 1
-            end
+              echo "Syncing vault..."
+              bw sync >/dev/null
 
-            if cliamp plugins list 2>/dev/null | string match -q --regex "\baxworker\b"
-              echo "axworker already installed"
-            else
-              echo "Installing axworker..."
-              cliamp plugins install --yes Axenide/cliamp-plugin-axworker; or return 1
-            end
-          '';
+              set -l tmpdir (mktemp -d)
+              set -l item_json $tmpdir/item.json
+              set -l prev_notes $tmpdir/prev_notes
+
+              set -l has_item 0
+              if bw get item fish-secrets > $item_json 2>/dev/null
+                set has_item 1
+                jq -j '.notes // ""' $item_json > $prev_notes
+              else
+                echo "No existing fish-secrets in vault (first upload, nothing to back up)"
+              end
+
+              set -l size (stat -c %s $secrets_file)
+              echo "About to upload $secrets_file ($size bytes) to Bitwarden."
+              echo "The current vault value (if any) will first be stored in fish-secrets-backup."
+              read -l -P "Update fish-secrets in Bitwarden? [y/N] " reply
+              if not string match -qi 'y*' -- $reply
+                echo "Aborted"
+                shred -u $prev_notes 2>/dev/null
+                rm -rf $tmpdir
+                return 1
+              end
+
+              echo "Backing up previous value to fish-secrets-backup..."
+              if test $has_item -eq 1
+                if bw get item fish-secrets-backup >/dev/null 2>&1
+                  if not bw get item fish-secrets-backup | jq --rawfile notes $prev_notes '.notes = $notes' | bw encode | bw update >/dev/null
+                    echo "Failed to update fish-secrets-backup, aborting"
+                    shred -u $prev_notes 2>/dev/null
+                    rm -rf $tmpdir
+                    return 1
+                  end
+                else
+                  if not bw get template item | jq --arg name fish-secrets-backup --rawfile notes $prev_notes '.name = $name | .notes = $notes | .type = 2 | .secureNote = {type: 0}' | bw encode | bw create >/dev/null
+                    echo "Failed to create fish-secrets-backup, aborting"
+                    shred -u $prev_notes 2>/dev/null
+                    rm -rf $tmpdir
+                    return 1
+                  end
+                end
+              end
+
+              echo "Uploading $secrets_file to fish-secrets..."
+              if test $has_item -eq 1
+                if not jq --rawfile notes $secrets_file '.notes = $notes' $item_json | bw encode | bw update >/dev/null
+                  echo "Failed to update fish-secrets (fish-secrets-backup holds the previous value)"
+                  shred -u $prev_notes 2>/dev/null
+                  rm -rf $tmpdir
+                  return 1
+                end
+              else
+                if not bw get template item | jq --arg name fish-secrets --rawfile notes $secrets_file '.name = $name | .notes = $notes | .type = 2 | .secureNote = {type: 0}' | bw encode | bw create >/dev/null
+                  echo "Failed to create fish-secrets"
+                  shred -u $prev_notes 2>/dev/null
+                  rm -rf $tmpdir
+                  return 1
+                end
+              end
+
+              echo "Verifying upload..."
+              bw sync >/dev/null
+              if not bw get item fish-secrets | jq -j '.notes // ""' | cmp -s - $secrets_file
+                echo "WARNING: vault copy of fish-secrets does not match $secrets_file"
+                shred -u $prev_notes 2>/dev/null
+                rm -rf $tmpdir
+                return 1
+              end
+
+              shred -u $prev_notes 2>/dev/null
+              rm -rf $tmpdir
+
+              echo "fish-secrets updated in Bitwarden and verified against $secrets_file"
+            '';
+
+            restore-backup-secrets = ''
+              set -l secrets_dir ~/.local/share/secrets
+              set -l secrets_file $secrets_dir/fish.fish
+
+              if not bw login --check >/dev/null 2>&1
+                echo "Logging in to Bitwarden..."
+                bw login
+              end
+
+              echo "Unlocking vault..."
+              set -gx BW_SESSION (bw unlock --raw)
+
+              echo "Syncing vault..."
+              bw sync >/dev/null
+
+              if not bw get item fish-secrets-backup >/dev/null 2>&1
+                echo "No fish-secrets-backup in vault (run update-secrets first)"
+                return 1
+              end
+
+              set -l tmpdir (mktemp -d)
+              set -l had_local 0
+              if test -e $secrets_file
+                set had_local 1
+                cp $secrets_file $tmpdir/previous
+              end
+
+              echo "Downloading fish-secrets-backup..."
+              bw get notes fish-secrets-backup > $secrets_file
+
+              chmod 600 $secrets_file
+
+              if test $had_local -eq 1
+                if not diff -u $tmpdir/previous $secrets_file
+                  echo "Restored fish-secrets-backup (diff above: previous local vs backup)"
+                else
+                  echo "Restored fish-secrets-backup (identical to previous local file)"
+                end
+              else
+                echo "Restored fish-secrets-backup to $secrets_file"
+              end
+
+              rm -rf $tmpdir
+            '';
+
+            cliamp-setup-axworker = ''
+              if not test -e ~/.config/cliamp/config.toml
+                echo "Missing ~/.config/cliamp/config.toml"
+                return 1
+              end
+
+              if cliamp plugins list 2>/dev/null | string match -q --regex "\baxworker\b"
+                echo "axworker already installed"
+              else
+                echo "Installing axworker..."
+                cliamp plugins install --yes Axenide/cliamp-plugin-axworker; or return 1
+              end
+            '';
           };
         };
 
@@ -439,12 +578,12 @@
         '';
 
         home.activation.setupNpm = lib.hm.dag.entryAfter ["linkGeneration"] ''
-          mkdir -p "$HOME/.cache/npm/global"
-          rm -f "$HOME/.npmrc"
-          cat > "$HOME/.npmrc" << EOF
-prefix=$HOME/.cache/npm/global
-global-prefix=$HOME/.cache/npm/global
-EOF
+                    mkdir -p "$HOME/.cache/npm/global"
+                    rm -f "$HOME/.npmrc"
+                    cat > "$HOME/.npmrc" << EOF
+          prefix=$HOME/.cache/npm/global
+          global-prefix=$HOME/.cache/npm/global
+          EOF
         '';
 
         home.activation.setupCliamp = lib.hm.dag.entryAfter ["linkGeneration"] ''

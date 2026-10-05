@@ -1,28 +1,29 @@
 {lib}: let
   inherit (builtins) readFile;
 
-  toolingPackages = pkgs: with pkgs; [
-    alejandra
-    black
-    curl
-    gnumake
-    go_latest
-    imagemagick
-    isort
-    nixd
-    mcp-nixos
-    nodejs
-    prettier
-    python3Packages.debugpy
-    pyright
-    gopls
-    kdePackages.qtdeclarative
-    shfmt
-    stylua
-    tree-sitter
-    vscode-langservers-extracted
-    yarn
-  ];
+  toolingPackages = pkgs:
+    with pkgs; [
+      alejandra
+      black
+      curl
+      gnumake
+      go_latest
+      imagemagick
+      isort
+      nixd
+      mcp-nixos
+      nodejs
+      prettier
+      python3Packages.debugpy
+      pyright
+      gopls
+      kdePackages.qtdeclarative
+      shfmt
+      stylua
+      tree-sitter
+      vscode-langservers-extracted
+      yarn
+    ];
 in {
   configPaths = {
     tmux = ./. + "/../tmux/tmux.conf";
@@ -45,6 +46,7 @@ in {
       pkgs.lazysql
       pkgs.cava
       pkgs.bitwarden-cli
+      pkgs.jq
       pkgs.yazi
       pkgs.git
       pkgs.gh
@@ -55,11 +57,12 @@ in {
     ]
     ++ (toolingPackages pkgs);
 
-  tmuxPlugins = pkgs: with pkgs.tmuxPlugins; [
-    sensible
-    yank
-    vim-tmux-navigator
-  ];
+  tmuxPlugins = pkgs:
+    with pkgs.tmuxPlugins; [
+      sensible
+      yank
+      vim-tmux-navigator
+    ];
 
   nvchadConfig = pkgs: {
     lazy-lock = readFile (./. + "/../nvim/nvchad-starter/lazy-lock.json");

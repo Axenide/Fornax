@@ -14,7 +14,7 @@ Global agent rules (commit style, branch safety, comments policy, language) live
 
 - `flake.nix` — outputs. `homeManagerModules.default` wires fish, tmux, NvChad, the opencode binary, the `xdg.configFile` symlinks, bun, the five activation hooks, and the `agent-skills-nix` Home Manager module. Also pins the flake inputs for the local and remote skills.
 - `lib/default.nix` — pure config: `configPaths`, `extraPackages`, `toolingPackages`, `tmuxPlugins`, `nvchadConfig`, `secretsFile`.
-- `fish/` — config files (`config.fish`, `aliases.fish`, `env.fish`, `ffmpeg.fish`, `conf.d/`). `fish/functions/` holds the secrets helpers. `fish_plugins` only declares `jorgebucaran/fisher` (the plugin manager; no plugins installed by fornax).
+- `fish/` — config files (`config.fish`, `aliases.fish`, `env.fish`, `ffmpeg.fish`, `conf.d/`). The secrets helpers (`restore-secrets`, `update-secrets`, `restore-backup-secrets`, `clean-secrets`, `shred-secrets`) and other functions are defined inline in `flake.nix` under `programs.fish.functions`. `fish_plugins` only declares `jorgebucaran/fisher` (the plugin manager; no plugins installed by fornax).
 - `tmux/tmux.conf` + `tmux/minimal.conf` — concatenated at build time into `programs.tmux.extraConfig`.
 - `nvim/nvchad-starter/` — vendored NvChad v2.5 starter, locally customized. Theme: `wallsync` (`lua/chadrc.lua`).
 - `btop/btop.conf` — symlinked to `~/.config/btop/btop.conf` by `xdg.configFile`.
@@ -57,11 +57,8 @@ All five are `entryAfter ["linkGeneration"]` so they run after symlinks are in p
 1. Add the nixpkgs package to `extraPackages` in `lib/default.nix` — wired into `home.packages` by `flake.nix`.
 2. If it's dev tooling that should also be available inside nvim, add it to `toolingPackages` in `lib/default.nix`. `toolingPackages` is reused by `extraPackages` and `nvchadConfig.extraPackages`.
 
-**Fish function** under `fish/functions/*.fish`:
-1. Register the path in `configPaths.fish.<name>` (`lib/default.nix`).
-2. Add the matching `xdg.configFile` entry (in `flake.nix`'s `homeManagerModules.default`).
-
-Missing either silently drops the function from the install.
+**Fish function** (defined inline in `flake.nix` under `programs.fish.functions`):
+1. Add the function body as a Nix string in the `functions` attrset of `programs.fish` (`flake.nix`'s `homeManagerModules.default`). No `configPaths`/`xdg.configFile` registration is needed — home-manager writes them to `~/.config/fish/functions/` directly.
 
 **Skill** for OpenCode:
 1. Drop a directory under `skills/<name>/` with a `SKILL.md` (frontmatter `name` must match the directory name). It auto-flows into `~/.config/opencode/skills/` on every switch via `agent-skills-nix`.
@@ -69,13 +66,15 @@ Missing either silently drops the function from the install.
 
 ## Secrets Workflow
 
-`fish/functions/{restore,clean,shred}-secrets.fish`. Storage path: `~/.local/share/secrets/fish.fish` (chmod 600 after restore).
+Fish functions defined inline in `flake.nix` (`programs.fish.functions`). Storage path: `~/.local/share/secrets/fish.fish` (chmod 600 after restore).
 
 - `restore-secrets` — `bw login` if needed → `bw unlock --raw` (exported as `BW_SESSION`) → `bw sync` → `bw get notes fish-secrets`.
+- `update-secrets` — uploads `~/.local/share/secrets/fish.fish` to the `fish-secrets` Bitwarden item. Single confirmation before any vault write. Order: write the current vault value to `fish-secrets-backup` (create or update, jq-based `bw create`/`bw update`) → update `fish-secrets` → verify via `bw sync` + re-fetch + `cmp`. If `fish-secrets` doesn't exist in the vault, it skips the backup and creates the item. Temp files holding secrets are `shred -u`'d. Requires `jq` (in `extraPackages`).
+- `restore-backup-secrets` — recovery path for a bad `update-secrets` upload: downloads `fish-secrets-backup` to `~/.local/share/secrets/fish.fish` (no vault writes). Fails if the backup item doesn't exist. Shows a diff between the previous local file and the restored backup when they differ. Fix the local file afterwards and re-run `update-secrets`.
 - `clean-secrets` — `rm` + `rmdir`.
 - `shred-secrets` — `shred -u -v -z -n 3` + `rmdir`.
 
-All three are fish functions symlinked by home-manager and callable from any fish shell.
+All five are fish functions written by home-manager and callable from any fish shell.
 
 ## Neovim
 
