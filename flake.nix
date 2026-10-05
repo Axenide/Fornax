@@ -398,15 +398,16 @@
 
               echo "Backing up previous value to fish-secrets-backup..."
               if test $has_item -eq 1
-                if bw get item fish-secrets-backup >/dev/null 2>&1
-                  if not bw get item fish-secrets-backup | jq --rawfile notes $prev_notes '.notes = $notes' | bw encode | bw update >/dev/null
+                if bw get item fish-secrets-backup > $tmpdir/backup.json 2>/dev/null
+                  set -l backup_id (jq -r .id $tmpdir/backup.json)
+                  if not jq --rawfile notes $prev_notes '.notes = $notes' $tmpdir/backup.json | bw encode | bw edit item $backup_id >/dev/null
                     echo "Failed to update fish-secrets-backup, aborting"
                     shred -u $prev_notes 2>/dev/null
                     rm -rf $tmpdir
                     return 1
                   end
                 else
-                  if not bw get template item | jq --arg name fish-secrets-backup --rawfile notes $prev_notes '.name = $name | .notes = $notes | .type = 2 | .secureNote = {type: 0}' | bw encode | bw create >/dev/null
+                  if not bw get template item | jq --arg name fish-secrets-backup --rawfile notes $prev_notes '.name = $name | .notes = $notes | .type = 2 | .secureNote = {type: 0}' | bw encode | bw create item >/dev/null
                     echo "Failed to create fish-secrets-backup, aborting"
                     shred -u $prev_notes 2>/dev/null
                     rm -rf $tmpdir
@@ -417,14 +418,15 @@
 
               echo "Uploading $secrets_file to fish-secrets..."
               if test $has_item -eq 1
-                if not jq --rawfile notes $secrets_file '.notes = $notes' $item_json | bw encode | bw update >/dev/null
+                set -l item_id (jq -r .id $item_json)
+                if not jq --rawfile notes $secrets_file '.notes = $notes' $item_json | bw encode | bw edit item $item_id >/dev/null
                   echo "Failed to update fish-secrets (fish-secrets-backup holds the previous value)"
                   shred -u $prev_notes 2>/dev/null
                   rm -rf $tmpdir
                   return 1
                 end
               else
-                if not bw get template item | jq --arg name fish-secrets --rawfile notes $secrets_file '.name = $name | .notes = $notes | .type = 2 | .secureNote = {type: 0}' | bw encode | bw create >/dev/null
+                if not bw get template item | jq --arg name fish-secrets --rawfile notes $secrets_file '.name = $name | .notes = $notes | .type = 2 | .secureNote = {type: 0}' | bw encode | bw create item >/dev/null
                   echo "Failed to create fish-secrets"
                   shred -u $prev_notes 2>/dev/null
                   rm -rf $tmpdir
