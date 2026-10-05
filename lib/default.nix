@@ -9,7 +9,6 @@
     go_latest
     imagemagick
     isort
-    jq
     nixd
     mcp-nixos
     nodejs

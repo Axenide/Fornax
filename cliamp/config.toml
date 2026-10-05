@@ -13,8 +13,6 @@ repeat = "Off"
 client_id = "${YT_CLIENT_ID}"
 client_secret = "${YT_CLIENT_SECRET}"
 
-[plugins.cliamp-lastfm]
-api_key = "${LASTFM_API_KEY}"
-api_secret = "${LASTFM_API_SECRET}"
-session_key = "${LASTFM_SESSION_KEY}"
-username = "${LASTFM_USERNAME}"
+[plugins.axworker]
+worker_url = "${AXWORKER_URL}"
+secret = "${AXWORKER_SECRET}"
