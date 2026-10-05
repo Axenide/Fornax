@@ -274,25 +274,56 @@
               end
             '';
 
+            bw-auth = ''
+              set -l st (bw status 2>/dev/null | jq -r '.status // ""')
+
+              if test -z "$st"; or test "$st" = unauthenticated
+                bw logout >/dev/null 2>&1
+                echo "Logging in to Bitwarden..."
+                set -gx BW_SESSION (bw login --raw)
+                if test -z "$BW_SESSION"
+                  echo "Bitwarden login failed"
+                  return 1
+                end
+                set st unlocked
+              end
+
+              if test "$st" = locked
+                echo "Unlocking vault..."
+                set -gx BW_SESSION (bw unlock --raw)
+                if test -z "$BW_SESSION"
+                  echo "Unlock failed; clearing stale session and logging in fresh..."
+                  bw logout >/dev/null 2>&1
+                  echo "Logging in to Bitwarden..."
+                  set -gx BW_SESSION (bw login --raw)
+                  if test -z "$BW_SESSION"
+                    echo "Bitwarden login failed"
+                    return 1
+                  end
+                end
+              end
+
+              if not bw sync >/dev/null 2>&1
+                echo "Failed to sync Bitwarden vault"
+                return 1
+              end
+            '';
+
             restore-secrets = ''
               set -l secrets_dir ~/.local/share/secrets
               set -l secrets_file $secrets_dir/fish.fish
 
-              mkdir -p $secrets_dir
-
-              if not bw login --check >/dev/null 2>&1
-                echo "Logging in to Bitwarden..."
-                bw login
+              if not bw-auth
+                return 1
               end
 
-              echo "Unlocking vault..."
-              set -gx BW_SESSION (bw unlock --raw)
-
-              echo "Syncing vault..."
-              bw sync
+              mkdir -p $secrets_dir
 
               echo "Downloading secrets..."
-              bw get notes fish-secrets > $secrets_file
+              if not bw get notes fish-secrets > $secrets_file
+                echo "Failed to download fish-secrets"
+                return 1
+              end
 
               chmod 600 $secrets_file
 
@@ -338,16 +369,9 @@
                 return 1
               end
 
-              if not bw login --check >/dev/null 2>&1
-                echo "Logging in to Bitwarden..."
-                bw login
+              if not bw-auth
+                return 1
               end
-
-              echo "Unlocking vault..."
-              set -gx BW_SESSION (bw unlock --raw)
-
-              echo "Syncing vault..."
-              bw sync >/dev/null
 
               set -l tmpdir (mktemp -d)
               set -l item_json $tmpdir/item.json
@@ -427,16 +451,9 @@
               set -l secrets_dir ~/.local/share/secrets
               set -l secrets_file $secrets_dir/fish.fish
 
-              if not bw login --check >/dev/null 2>&1
-                echo "Logging in to Bitwarden..."
-                bw login
+              if not bw-auth
+                return 1
               end
-
-              echo "Unlocking vault..."
-              set -gx BW_SESSION (bw unlock --raw)
-
-              echo "Syncing vault..."
-              bw sync >/dev/null
 
               if not bw get item fish-secrets-backup >/dev/null 2>&1
                 echo "No fish-secrets-backup in vault (run update-secrets first)"
@@ -451,7 +468,15 @@
               end
 
               echo "Downloading fish-secrets-backup..."
-              bw get notes fish-secrets-backup > $secrets_file
+              if not bw get notes fish-secrets-backup > $secrets_file
+                echo "Failed to download fish-secrets-backup"
+                if test $had_local -eq 1
+                  cp $tmpdir/previous $secrets_file
+                  echo "Previous local file restored"
+                end
+                rm -rf $tmpdir
+                return 1
+              end
 
               chmod 600 $secrets_file
 

@@ -66,7 +66,7 @@ All five are `entryAfter ["linkGeneration"]` so they run after symlinks are in p
 
 ## Secrets Workflow
 
-Fish functions defined inline in `flake.nix` (`programs.fish.functions`). Storage path: `~/.local/share/secrets/fish.fish` (chmod 600 after restore).
+Fish functions defined inline in `flake.nix` (`programs.fish.functions`). Storage path: `~/.local/share/secrets/fish.fish` (chmod 600 after restore). All vault-touching commands start with `bw-auth`, a shared helper that inspects `bw status` (NOT `bw login --check`, which succeeds with a stale session): unauthenticated/failed status → `bw logout` + `bw login --raw`; locked → `bw unlock --raw` (falls back to fresh login if unlock fails); then a guarded `bw sync`. Callers check `if not bw-auth; return 1; end` and never continue past a failed `bw` step.
 
 - `restore-secrets` — `bw login` if needed → `bw unlock --raw` (exported as `BW_SESSION`) → `bw sync` → `bw get notes fish-secrets`.
 - `update-secrets` — uploads `~/.local/share/secrets/fish.fish` to the `fish-secrets` Bitwarden item. Single confirmation before any vault write. Order: write the current vault value to `fish-secrets-backup` (create or update, jq-based `bw create`/`bw update`) → update `fish-secrets` → verify via `bw sync` + re-fetch + `cmp`. If `fish-secrets` doesn't exist in the vault, it skips the backup and creates the item. Temp files holding secrets are `shred -u`'d. Requires `jq` (in `extraPackages`).
