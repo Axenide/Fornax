@@ -12,12 +12,13 @@ Global agent rules (commit style, branch safety, comments policy, language) live
 
 ## Layout
 
-- `flake.nix` — outputs. `homeManagerModules.default` wires fish, tmux, NvChad, the opencode binary, the `xdg.configFile` symlinks, bun, the four activation hooks, and the `agent-skills-nix` Home Manager module. Also pins the flake inputs for the local and remote skills.
+- `flake.nix` — outputs. `homeManagerModules.default` wires fish, tmux, NvChad, the opencode binary, the `xdg.configFile` symlinks, bun, the five activation hooks, and the `agent-skills-nix` Home Manager module. Also pins the flake inputs for the local and remote skills.
 - `lib/default.nix` — pure config: `configPaths`, `extraPackages`, `toolingPackages`, `tmuxPlugins`, `nvchadConfig`, `secretsFile`.
 - `fish/` — config files (`config.fish`, `aliases.fish`, `env.fish`, `ffmpeg.fish`, `conf.d/`). `fish/functions/` holds the secrets helpers. `fish_plugins` only declares `jorgebucaran/fisher` (the plugin manager; no plugins installed by fornax).
 - `tmux/tmux.conf` + `tmux/minimal.conf` — concatenated at build time into `programs.tmux.extraConfig`.
 - `nvim/nvchad-starter/` — vendored NvChad v2.5 starter, locally customized. Theme: `wallsync` (`lua/chadrc.lua`).
 - `btop/btop.conf` — symlinked to `~/.config/btop/btop.conf` by `xdg.configFile`.
+- `cliamp/config.toml` — NOT managed by `xdg.configFile`. cliamp rewrites `config.toml` in place to persist runtime state (shuffle toggle, etc.), which fails against a read-only store symlink. The `setupCliamp` activation hook copies it from the repo to `~/.config/cliamp/config.toml` (regular, writable file) on every switch instead.
 - Starship config is declared via `programs.starship` in `flake.nix` (home-manager's `modules/programs/starship.nix`): `settings` is the Nix attrset serialized to `~/.config/starship.toml`, and `enableFishIntegration = true` injects `starship init fish | source` into `fish.interactiveShellInit` (replaces the manual line previously in `fish/config.fish`).
 - `opencode/` — OpenCode CLI config bundle (config, global rules, own `.gitignore`).
 - `skills/` — local OpenCode skills, materialized to `~/.config/opencode/skills/` on every switch via `agent-skills-nix`. Current entries: `bubbletea-go-tui-builder`, `rust-gtk4-expert`. Remote skills come from the pinned `cloudflare-skills` flake input (`cloudflare/skills`; enabled: `cloudflare`, `wrangler`, `workers-best-practices`).
@@ -42,11 +43,12 @@ Three outputs, all system-conditional on `["x86_64-linux" "aarch64-linux"]`:
 
 ## Activation Hooks
 
-All four are `entryAfter ["linkGeneration"]` so they run after symlinks are in place:
+All five are `entryAfter ["linkGeneration"]` so they run after symlinks are in place:
 
 - `refreshTmux` — non-destructive: if a tmux server is alive, updates `default-shell` + global `SHELL` to the new fish and re-sources `~/.config/tmux/tmux.conf`. Existing panes are left untouched.
 - `syncOpencodeConfig` — overwrites `~/.config/opencode/{opencode.json, AGENTS.md, skills/}` from the fornax derivation on every switch. The repo is the source of truth; local edits there are wiped. Anything else under `~/.config/opencode/` is left alone.
 - `setupNpm` — replaces `~/.npmrc` with one pinning `prefix` and `global-prefix` to `~/.cache/npm/global`. Required for `npm i -g` under Nix's read-only `nodejs`.
+- `setupCliamp` — overwrites `~/.config/cliamp/config.toml` from the repo on every switch (`rm -f` first so a stale symlink is never written through; safe even with the cliamp daemon running since it only reads the config at startup). Because cliamp stores runtime state (shuffle, etc.) inside this file, a `home-manager switch` resets it to the repo value.
 - `installNvChad` — destructive: if `~/.config/nvim` exists as a real directory, it is renamed to `~/.config/nvim_<timestamp>.bak`; then the NvChad config from the freshly built `nvchadPkg` is copied in. Don't rely on pre-existing nvim config surviving a `home-manager switch`.
 
 ## Adding a Tool / Function / Skill

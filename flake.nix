@@ -405,7 +405,6 @@
 
         xdg.configFile = {
           "btop/btop.conf".source = termCfg.configPaths.btop;
-          "cliamp/config.toml".source = termCfg.configPaths.cliamp;
         };
 
         programs.tmux = {
@@ -446,6 +445,13 @@
 prefix=$HOME/.cache/npm/global
 global-prefix=$HOME/.cache/npm/global
 EOF
+        '';
+
+        home.activation.setupCliamp = lib.hm.dag.entryAfter ["linkGeneration"] ''
+          mkdir -p "$HOME/.config/cliamp"
+          rm -f "$HOME/.config/cliamp/config.toml"
+          cp ${termCfg.configPaths.cliamp} "$HOME/.config/cliamp/config.toml"
+          chmod u+w "$HOME/.config/cliamp/config.toml"
         '';
 
         home.activation.installNvChad = lib.hm.dag.entryAfter ["linkGeneration"] ''
