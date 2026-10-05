@@ -309,6 +309,22 @@
               end
             '';
 
+            bw-item-id = ''
+              set -l name $argv[1]
+              if test -z "$name"
+                return 1
+              end
+
+              set -l ids (bw list items --search $name 2>/dev/null | jq -r --arg name $name '[.[] | select(.name == $name) | .id][]')
+              if test (count $ids) -gt 1
+                printf "WARNING: %d items named %s found; using the first\n" (count $ids) $name >&2
+              end
+              if test (count $ids) -eq 0
+                return 0
+              end
+              echo $ids[1]
+            '';
+
             restore-secrets = ''
               set -l secrets_dir ~/.local/share/secrets
               set -l secrets_file $secrets_dir/fish.fish
@@ -319,8 +335,14 @@
 
               mkdir -p $secrets_dir
 
+              set -l item_id (bw-item-id fish-secrets)
+              if test -z "$item_id"
+                echo "No fish-secrets item in vault"
+                return 1
+              end
+
               echo "Downloading secrets..."
-              if not bw get notes fish-secrets > $secrets_file
+              if not bw get item $item_id | jq -j '.notes // ""' > $secrets_file
                 echo "Failed to download fish-secrets"
                 return 1
               end
@@ -378,8 +400,18 @@
               set -l prev_notes $tmpdir/prev_notes
 
               set -l has_item 0
-              if bw get item fish-secrets > $item_json 2>/dev/null
+              set -l item_id (bw-item-id fish-secrets)
+              set -l item_json $tmpdir/item.json
+              set -l prev_notes $tmpdir/prev_notes
+
+              if test -n "$item_id"
                 set has_item 1
+                if not bw get item $item_id > $item_json 2>/dev/null
+                  echo "Failed to fetch fish-secrets"
+                  shred -u $prev_notes 2>/dev/null
+                  rm -rf $tmpdir
+                  return 1
+                end
                 jq -j '.notes // ""' $item_json > $prev_notes
               else
                 echo "No existing fish-secrets in vault (first upload, nothing to back up)"
@@ -398,8 +430,14 @@
 
               echo "Backing up previous value to fish-secrets-backup..."
               if test $has_item -eq 1
-                if bw get item fish-secrets-backup > $tmpdir/backup.json 2>/dev/null
-                  set -l backup_id (jq -r .id $tmpdir/backup.json)
+                set -l backup_id (bw-item-id fish-secrets-backup)
+                if test -n "$backup_id"
+                  if not bw get item $backup_id > $tmpdir/backup.json 2>/dev/null
+                    echo "Failed to fetch fish-secrets-backup, aborting"
+                    shred -u $prev_notes 2>/dev/null
+                    rm -rf $tmpdir
+                    return 1
+                  end
                   if not jq --rawfile notes $prev_notes '.notes = $notes' $tmpdir/backup.json | bw encode | bw edit item $backup_id >/dev/null
                     echo "Failed to update fish-secrets-backup, aborting"
                     shred -u $prev_notes 2>/dev/null
@@ -418,7 +456,6 @@
 
               echo "Uploading $secrets_file to fish-secrets..."
               if test $has_item -eq 1
-                set -l item_id (jq -r .id $item_json)
                 if not jq --rawfile notes $secrets_file '.notes = $notes' $item_json | bw encode | bw edit item $item_id >/dev/null
                   echo "Failed to update fish-secrets (fish-secrets-backup holds the previous value)"
                   shred -u $prev_notes 2>/dev/null
@@ -436,11 +473,25 @@
 
               echo "Verifying upload..."
               bw sync >/dev/null
-              if not bw get item fish-secrets | jq -j '.notes // ""' | cmp -s - $secrets_file
-                echo "WARNING: vault copy of fish-secrets does not match $secrets_file"
+              if not bw get item $item_id > $tmpdir/vault.json 2>/dev/null
+                echo "Failed to re-fetch fish-secrets"
                 shred -u $prev_notes 2>/dev/null
                 rm -rf $tmpdir
                 return 1
+              end
+              jq -j '.notes // ""' $tmpdir/vault.json > $tmpdir/vault_notes
+
+              if not cmp -s $tmpdir/vault_notes $secrets_file
+                jq -Rs 'gsub("\n+$"; "")' < $tmpdir/vault_notes > $tmpdir/vault_norm
+                jq -Rs 'gsub("\n+$"; "")' < $secrets_file > $tmpdir/local_norm
+                if cmp -s $tmpdir/vault_norm $tmpdir/local_norm
+                  echo "Verified (only difference is a trailing newline added by Bitwarden)"
+                else
+                  echo "WARNING: vault copy of fish-secrets does not match $secrets_file"
+                  shred -u $prev_notes 2>/dev/null
+                  rm -rf $tmpdir
+                  return 1
+                end
               end
 
               shred -u $prev_notes 2>/dev/null
@@ -457,7 +508,8 @@
                 return 1
               end
 
-              if not bw get item fish-secrets-backup >/dev/null 2>&1
+              set -l item_id (bw-item-id fish-secrets-backup)
+              if test -z "$item_id"
                 echo "No fish-secrets-backup in vault (run update-secrets first)"
                 return 1
               end
@@ -470,7 +522,7 @@
               end
 
               echo "Downloading fish-secrets-backup..."
-              if not bw get notes fish-secrets-backup > $secrets_file
+              if not bw get item $item_id | jq -j '.notes // ""' > $secrets_file
                 echo "Failed to download fish-secrets-backup"
                 if test $had_local -eq 1
                   cp $tmpdir/previous $secrets_file
