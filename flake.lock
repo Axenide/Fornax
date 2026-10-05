@@ -1,21 +1,5 @@
 {
   "nodes": {
-    "adk-skill": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1772046135,
-        "narHash": "sha256-64U5xkEShjbt5Q+nAaz6lb2gEKTDIvmw3uzuv1MCLRE=",
-        "owner": "dewitt",
-        "repo": "adk-skill",
-        "rev": "9a1c33c251412de7d4290af6be3e25ef9dae8b75",
-        "type": "github"
-      },
-      "original": {
-        "owner": "dewitt",
-        "repo": "adk-skill",
-        "type": "github"
-      }
-    },
     "agent-skills": {
       "inputs": {
         "nixpkgs": "nixpkgs"
@@ -50,6 +34,40 @@
         "url": "https://projects.blender.org/lab/blender_mcp"
       }
     },
+    "bun2nix": {
+      "inputs": {
+        "flake-parts": [
+          "llm-agents",
+          "flake-parts"
+        ],
+        "nixpkgs": [
+          "llm-agents",
+          "nixpkgs"
+        ],
+        "systems": [
+          "llm-agents",
+          "systems"
+        ],
+        "treefmt-nix": [
+          "llm-agents",
+          "treefmt-nix"
+        ]
+      },
+      "locked": {
+        "lastModified": 1790001035,
+        "narHash": "sha256-1/SLBjSYBzDdDhvLQ83wrzBakyS/xNGgtxHGNuveOEQ=",
+        "owner": "Mic92",
+        "repo": "bun2nix",
+        "rev": "07a5bfc8ac36c5370199343fa620b69f63186e33",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Mic92",
+        "ref": "llm-agents",
+        "repo": "bun2nix",
+        "type": "github"
+      }
+    },
     "cliamp": {
       "inputs": {
         "nixpkgs": [
@@ -67,6 +85,67 @@
       "original": {
         "owner": "bjarneo",
         "repo": "cliamp",
+        "type": "github"
+      }
+    },
+    "cloudflare-skills": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1790864655,
+        "narHash": "sha256-U0pebg1Uu/L5gYy6aZXte5FZT0R3OPHxU34J+HOTBFk=",
+        "owner": "cloudflare",
+        "repo": "skills",
+        "rev": "41e0d19858946d18af9ee2c2feebbe2e11d829ff",
+        "type": "github"
+      },
+      "original": {
+        "owner": "cloudflare",
+        "repo": "skills",
+        "type": "github"
+      }
+    },
+    "flake-parts": {
+      "inputs": {
+        "nixpkgs-lib": [
+          "llm-agents",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1790898470,
+        "narHash": "sha256-zTwuwezD0w3hpga6a6P8emidzAZFyWqlNeRBlpWOOl8=",
+        "owner": "hercules-ci",
+        "repo": "flake-parts",
+        "rev": "024633cd702b10285db5cb19b40ad48d2399ba60",
+        "type": "github"
+      },
+      "original": {
+        "owner": "hercules-ci",
+        "repo": "flake-parts",
+        "type": "github"
+      }
+    },
+    "llm-agents": {
+      "inputs": {
+        "bun2nix": "bun2nix",
+        "flake-parts": "flake-parts",
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "systems": "systems",
+        "treefmt-nix": "treefmt-nix"
+      },
+      "locked": {
+        "lastModified": 1791175671,
+        "narHash": "sha256-1szYaEAFYPApOgy2HGLbqtVys8SIqk5mlvz9agPFLr0=",
+        "owner": "numtide",
+        "repo": "llm-agents.nix",
+        "rev": "ba24820b562c0e1ff95d283a2e2e1debcbcbad83",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "llm-agents.nix",
         "type": "github"
       }
     },
@@ -140,31 +219,51 @@
         "type": "github"
       }
     },
-    "opentui": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1790516581,
-        "narHash": "sha256-ZHoEinCjGMTcsVi6ZURtf+DIUzKjowH4yVZUBHRhe9Y=",
-        "owner": "anomalyco",
-        "repo": "opentui",
-        "rev": "32d67005d0dd61e63dff24756d5b9061bc504325",
-        "type": "github"
-      },
-      "original": {
-        "owner": "anomalyco",
-        "repo": "opentui",
-        "type": "github"
-      }
-    },
     "root": {
       "inputs": {
-        "adk-skill": "adk-skill",
         "agent-skills": "agent-skills",
         "blender-mcp": "blender-mcp",
         "cliamp": "cliamp",
+        "cloudflare-skills": "cloudflare-skills",
+        "llm-agents": "llm-agents",
         "nix4nvchad": "nix4nvchad",
-        "nixpkgs": "nixpkgs_2",
-        "opentui": "opentui"
+        "nixpkgs": "nixpkgs_2"
+      }
+    },
+    "systems": {
+      "locked": {
+        "lastModified": 1681028828,
+        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
+        "owner": "nix-systems",
+        "repo": "default",
+        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-systems",
+        "repo": "default",
+        "type": "github"
+      }
+    },
+    "treefmt-nix": {
+      "inputs": {
+        "nixpkgs": [
+          "llm-agents",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1786901030,
+        "narHash": "sha256-WSFCsDSE5ffgD2MqzkM2CYjeFiKhRF/dJUN8uedb6YE=",
+        "owner": "numtide",
+        "repo": "treefmt-nix",
+        "rev": "27b3b12a8e6375f28ebe122f07d230ca5459bbfa",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "treefmt-nix",
+        "type": "github"
       }
     }
   },

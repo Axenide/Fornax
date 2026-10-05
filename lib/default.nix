@@ -51,6 +51,7 @@ in {
       pkgs.btop
       pkgs.coreutils
       pkgs.mcp-nixos
+      pkgs.wrangler
     ]
     ++ (toolingPackages pkgs);
 

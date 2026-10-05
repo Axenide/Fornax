@@ -20,16 +20,16 @@ Global agent rules (commit style, branch safety, comments policy, language) live
 - `btop/btop.conf` — symlinked to `~/.config/btop/btop.conf` by `xdg.configFile`.
 - Starship config is declared via `programs.starship` in `flake.nix` (home-manager's `modules/programs/starship.nix`): `settings` is the Nix attrset serialized to `~/.config/starship.toml`, and `enableFishIntegration = true` injects `starship init fish | source` into `fish.interactiveShellInit` (replaces the manual line previously in `fish/config.fish`).
 - `opencode/` — OpenCode CLI config bundle (config, global rules, own `.gitignore`).
-- `skills/` — local OpenCode skills, materialized to `~/.config/opencode/skills/` on every switch via `agent-skills-nix`. Current entries: `bubbletea-go-tui-builder`, `rust-gtk4-expert`. Remote skills (`adk`, `opentui`) come from pinned flake inputs declared in `flake.nix`.
+- `skills/` — local OpenCode skills, materialized to `~/.config/opencode/skills/` on every switch via `agent-skills-nix`. Current entries: `bubbletea-go-tui-builder`, `rust-gtk4-expert`. Remote skills come from the pinned `cloudflare-skills` flake input (`cloudflare/skills`; enabled: `cloudflare`, `wrangler`, `workers-best-practices`).
 - Root `.gitignore` only ignores `result` / `result-*` (Nix build symlinks). Don't add generated Nix store paths to commits.
 
 ## Flake Inputs
 
 - `nixpkgs` (`nixpkgs-unstable`) — package source.
+- `llm-agents` (`github:numtide/llm-agents.nix`) — source of `packages.<system>.opencode` (prebuilt upstream binary, auto-bumped daily; `nixpkgs` follows ours).
 - `nix4nvchad` (`github:nix-community/nix4nvchad`) — used internally to build `packages.<system>.nvchad`. Consumers do not need to declare it.
 - `agent-skills` (`github:Kyure-A/agent-skills-nix`) — Home Manager module that discovers, selects and syncs skills into agent targets.
-- `adk-skill` (`github:dewitt/adk-skill`, non-flake) — source of the Google ADK skill.
-- `opentui` (`github:anomalyco/opentui`, non-flake) — source of the OpenTUI skill at `packages/web/src/content`.
+- `cloudflare-skills` (`github:cloudflare/skills`, non-flake) — source of the Cloudflare skills (subdir `skills`). Enabled via `programs.agent-skills.skills.enable`. Bump via `nix flake update cloudflare-skills`.
 - `blender-mcp` (`git+https://projects.blender.org/lab/blender_mcp`, non-flake) — source for `packages.<system>.blender-mcp` (the Blender MCP server binary; built from the `mcp/` setuptools subdirectory with `python3Packages.buildPythonApplication`). Installed into `home.packages` and wired as the local `blender` MCP server in `opencode/opencode.json`. Bump via `nix flake update blender-mcp`.
 
 ## Flake Outputs
@@ -63,7 +63,7 @@ Missing either silently drops the function from the install.
 
 **Skill** for OpenCode:
 1. Drop a directory under `skills/<name>/` with a `SKILL.md` (frontmatter `name` must match the directory name). It auto-flows into `~/.config/opencode/skills/` on every switch via `agent-skills-nix`.
-2. The `opentui` and `adk` skills are pinned inside `flake.nix` as non-flake inputs and selected via `programs.agent-skills.skills.enable`. Bump the matching input `rev` in `flake.lock` when updating.
+2. Remote skills (currently `cloudflare-skills`) are pinned inside `flake.nix` as non-flake inputs and selected via `programs.agent-skills.skills.enable`. Bump the matching input `rev` in `flake.lock` when updating.
 
 ## Secrets Workflow
 
@@ -90,15 +90,15 @@ NvChad v2.5 (`nvim/nvchad-starter/init.lua` pins `branch = "v2.5"`). Format Lua 
 
 ## OpenCode Sub-bundle
 
-`opencode/opencode.json` enables remote MCP servers `context7`, `deepwiki`, `gitmcp`, `excalidraw`, plus local `nixos` (backed by `mcp-nixos` from nixpkgs) and `blender` (backed by `packages.<system>.blender-mcp`, built from the `blender-mcp` flake input). `permission: "allow"` (all tool calls auto-approved — be careful), `lsp: true`, `instructions: ["./AGENTS.md"]` (loads the global rules file into every OpenCode session).
+`opencode/opencode.json` enables remote MCP servers `context7`, `deepwiki`, `gitmcp`, `excalidraw`, the five Cloudflare ones (`cloudflare`, `cloudflare-docs`, `cloudflare-bindings`, `cloudflare-builds`, `cloudflare-observability` — first use of the account-scoped ones triggers OAuth via `opencode mcp auth cloudflare`), plus local `nixos` (backed by `mcp-nixos` from nixpkgs) and `blender` (backed by `packages.<system>.blender-mcp`, built from the `blender-mcp` flake input). `permission: "allow"` (all tool calls auto-approved — be careful), `lsp: true`, `instructions: ["./AGENTS.md"]` (loads the global rules file into every OpenCode session).
 
 Materialization:
 - The derivation `${opencodeXdg}/opencode/` (built inside `homeManagerModules.default`) combines `opencode/opencode.json` and `opencode/AGENTS.md`.
 - The `agent-skills` Home Manager module materializes skills from the bundle into `~/.config/opencode/skills/` via its own activation hook (`agent-skills`), which runs after `writeBoundary` and `--delete`s via rsync on every switch.
 - The `syncOpencodeConfig` hook overwrites `~/.config/opencode/{opencode.json, AGENTS.md}` from that derivation on every switch. The skills directory is left to `agent-skills` and other `~/.config/opencode/` content is untouched.
-- The `opencode` binary is installed at `~/.nix-profile/bin/opencode` via `home.packages` from `pkgs.opencode` (no wrapper, no `npx`, no pinned flake input — version tracks `nixpkgs-unstable`). opencode auto-discovers `~/.config/opencode/opencode.json` via `$XDG_CONFIG_HOME`. The local `mcp-nixos` MCP server is reached because `mcp-nixos` is in `extraPackages` (already on PATH for the binary to spawn).
-- To bump: `nix flake update nixpkgs` (the version tracks nixpkgs-unstable).
+- The `opencode` binary is installed at `~/.nix-profile/bin/opencode` via `home.packages` from `packages.<system>.opencode` of the `llm-agents` flake input (`github:numtide/llm-agents.nix` — prebuilt upstream binary with Nix-specific wrappers: `fzf`/`ripgrep` on PATH, `libstdc++` for the `@parcel/watcher` addon; auto-updated daily by numtide's bot). opencode auto-discovers `~/.config/opencode/opencode.json` via `$XDG_CONFIG_HOME`. The local `mcp-nixos` MCP server is reached because `mcp-nixos` is in `extraPackages` (already on PATH for the binary to spawn).
 
+- To bump: `nix flake update llm-agents` (its bot tracks upstream releases daily).
 ## Verify After Edits
 
 There is no CI, no test suite, and no pre-commit hook. The only correctness loop is Nix evaluation:

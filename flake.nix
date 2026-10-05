@@ -11,19 +11,19 @@
 
     agent-skills.url = "github:Kyure-A/agent-skills-nix";
 
-    adk-skill = {
-      url = "github:dewitt/adk-skill";
-      flake = false;
-    };
-
-    opentui = {
-      url = "github:anomalyco/opentui";
-      flake = false;
+    llm-agents = {
+      url = "github:numtide/llm-agents.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     cliamp = {
       url = "github:bjarneo/cliamp";
       inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    cloudflare-skills = {
+      url = "github:cloudflare/skills";
+      flake = false;
     };
 
     blender-mcp = {
@@ -37,9 +37,9 @@
     nixpkgs,
     nix4nvchad,
     agent-skills,
-    adk-skill,
-    opentui,
+    llm-agents,
     cliamp,
+    cloudflare-skills,
     blender-mcp,
     ...
   }: let
@@ -119,7 +119,7 @@
         chmod -R u+w $out
       '';
 
-      opencodePkg = pkgs.opencode;
+      opencodePkg = llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.opencode;
 
       nvchadPkg = self.packages.${pkgs.stdenv.hostPlatform.system}.nvchad;
 
@@ -162,17 +162,13 @@
           enable = true;
           sources = {
             local.path = ./skills;
-            adk = {
-              path = adk-skill;
-              subdir = "skill";
-            };
-            opentui = {
-              path = opentui;
-              subdir = "packages/web/src/content";
+            cloudflare = {
+              path = cloudflare-skills;
+              subdir = "skills";
             };
           };
           skills.enableAll = ["local"];
-          skills.enable = ["adk" "opentui"];
+          skills.enable = ["cloudflare" "wrangler" "workers-best-practices"];
           targets.opencode.enable = true;
         };
 
