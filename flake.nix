@@ -62,14 +62,24 @@
 
     cliampFor = system: let
       pkgs = import nixpkgs {inherit system;};
-    in (cliamp.packages.${system}.default.override {
-      alsa-lib = pkgs.alsa-lib-with-plugins.override {
-        plugins = [
-          pkgs.alsa-plugins
-          pkgs.pipewire
-        ];
+      buildGoModule = args: (pkgs.buildGoModule.override {go = pkgs.go_1_27;} (args
+        // {
+          overrideModAttrs = _: _: {
+            outputHash = "sha256-4IobrZ8UBXehfWH1WvzaICcuZlk9zZaVHW7c7h1Wex0=";
+            outputHashAlgo = null;
+          };
+        }));
+    in
+      pkgs.callPackage (cliamp + "/nix/package.nix") {
+        inherit buildGoModule;
+        version = cliamp.shortRev or "dev";
+        alsa-lib = pkgs.alsa-lib-with-plugins.override {
+          plugins = [
+            pkgs.alsa-plugins
+            pkgs.pipewire
+          ];
+        };
       };
-    });
 
     blenderMcpFor = system: let
       pkgs = import nixpkgs {inherit system;};
