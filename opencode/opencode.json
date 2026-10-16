@@ -65,6 +65,11 @@
         "WAYBACK_ACCESS_KEY": "{env:WAYBACK_ACCESS_KEY}",
         "WAYBACK_SECRET_KEY": "{env:WAYBACK_SECRET_KEY}"
       }
+    },
+    "supabase": {
+      "type": "remote",
+      "url": "https://mcp.supabase.com/mcp?features=docs%2Caccount%2Cdatabase%2Cdebugging%2Cdevelopment%2Cfunctions%2Cbranching",
+      "enabled": true
     }
   },
   "permission": "allow",
