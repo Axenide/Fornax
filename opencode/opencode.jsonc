@@ -74,6 +74,6 @@
   },
   "permission": "allow",
   "lsp": true,
-  "instructions": ["./AGENTS.md"],
-  "plugin": ["opencode-browser-annotation-plugin"]
+  "instructions": ["./AGENTS.md"]
+  // "plugin": ["opencode-browser-annotation-plugin"]
 }

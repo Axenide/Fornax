@@ -124,12 +124,16 @@
 
       opencodeXdg = pkgs.runCommand "axenide-opencode-xdg" {} ''
         mkdir -p $out/opencode
-        cp -rL ${./opencode/opencode.json} $out/opencode/opencode.json
+        cp -rL ${./opencode/opencode.jsonc} $out/opencode/opencode.jsonc
         cp -rL ${./opencode/AGENTS.md} $out/opencode/AGENTS.md
         chmod -R u+w $out
       '';
 
-      opencodePkg = llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.opencode;
+      opencode2Pkg = llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.opencode2;
+      opencodePkg = pkgs.runCommand "opencode" {} ''
+        mkdir -p $out/bin
+        ln -s ${opencode2Pkg}/bin/opencode2 $out/bin/opencode
+      '';
 
       nvchadPkg = self.packages.${pkgs.stdenv.hostPlatform.system}.nvchad;
 
@@ -661,7 +665,7 @@
         home.activation.syncOpencodeConfig = lib.hm.dag.entryAfter ["linkGeneration"] ''
           mkdir -p "$HOME/.config/opencode"
           chmod -R u+w "$HOME/.config/opencode" 2>/dev/null || true
-          rm -rf "$HOME/.config/opencode/opencode.json" "$HOME/.config/opencode/AGENTS.md"
+          rm -rf "$HOME/.config/opencode/opencode.json" "$HOME/.config/opencode/opencode.jsonc" "$HOME/.config/opencode/AGENTS.md"
           cp -rL ${opencodeXdg}/opencode/. "$HOME/.config/opencode/"
           chmod -R u+w "$HOME/.config/opencode"
         '';
