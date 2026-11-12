@@ -91,7 +91,7 @@
         src = blender-mcp + "/mcp";
         build-system = [pkgs.python3Packages.setuptools];
         dependencies = with pkgs.python3Packages; [
-          mcp
+          mcp_1
           docutils
           pyyaml
         ];
